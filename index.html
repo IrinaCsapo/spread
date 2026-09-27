@@ -9,16 +9,16 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600&family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital@0;1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="spread.css">
   <style>
     :root { --ink: #1d1c1a; --muted: #6f6a62; --bg: #f4f2ee; --accent: #e8331f; --blue: #1b3fd0; }
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 "Inter", system-ui, sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 "Albert Sans", system-ui, sans-serif; }
     .wrap { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 28px 0 20px; flex-wrap: wrap; }
-    .logo { margin: 0; font: 400 40px/1 "Instrument Serif", Georgia, serif; letter-spacing: -.01em; }
-    .logo span { color: var(--accent); font-style: italic; }
+    .logo { margin: 0; font: 400 36px/1 "Libre Caslon Display", "Libre Caslon Text", Georgia, serif; letter-spacing: -.01em; }
+    .logo span { color: var(--accent); font-family: "Libre Caslon Text", Georgia, serif; font-style: italic; font-size: .9em; }
     .tag { margin: 0; color: var(--muted); }
     .book { border-radius: 14px; }
     .tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 18px 0 8px; }
@@ -28,7 +28,7 @@
     .chip[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
     .chip:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
     section.embed { padding: 32px 0 64px; max-width: 720px; }
-    h2 { font: 400 28px/1.1 "Instrument Serif", Georgia, serif; margin: 0 0 10px; }
+    h2 { font: 400 28px/1.1 "Libre Caslon Display", "Libre Caslon Text", Georgia, serif; margin: 0 0 10px; }
     pre { margin: 12px 0 0; padding: 16px; overflow-x: auto; background: #fff; border: 1px solid rgba(29,28,26,.1); border-radius: 10px; font: 13px/1.6 ui-monospace, "SF Mono", Menlo, monospace; }
     p.note { color: var(--muted); margin: 12px 0 0; }
     footer { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding: 24px 0 40px; border-top: 1px solid rgba(29,28,26,.1); color: var(--muted); font-size: 13px; }

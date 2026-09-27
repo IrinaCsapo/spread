@@ -10,7 +10,7 @@
   --warn-bg: #fff4ed;
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 "Inter", system-ui, sans-serif; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 "Albert Sans", system-ui, sans-serif; }
 button { font: inherit; color: inherit; }
 
 /* top bar */
@@ -22,8 +22,8 @@ button { font: inherit; color: inherit; }
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line);
 }
-.logo { font: 400 26px/1 "Instrument Serif", Georgia, serif; color: var(--ink); text-decoration: none; }
-.logo span { color: var(--accent); font-style: italic; }
+.logo { font: 400 24px/1 "Libre Caslon Display", "Libre Caslon Text", Georgia, serif; color: var(--ink); text-decoration: none; }
+.logo span { color: var(--accent); font-family: "Libre Caslon Text", Georgia, serif; font-style: italic; font-size: .9em; }
 .bar-title { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .bar-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
 
@@ -62,7 +62,7 @@ button { font: inherit; color: inherit; }
 
 .block { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
 .block-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-h2 { margin: 0; font: 400 24px/1.1 "Instrument Serif", Georgia, serif; }
+h2 { margin: 0; font: 400 24px/1.1 "Libre Caslon Display", "Libre Caslon Text", Georgia, serif; }
 details.block summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; }
 details.block summary::-webkit-details-marker { display: none; }
 details.block summary::after { content: "+"; font-size: 20px; color: var(--muted); }
@@ -85,7 +85,7 @@ details.block[open] summary { margin-bottom: 12px; }
   margin: 12px 0 0; padding: 12px 14px; border-radius: 10px;
   background: #f7f3ec; font-size: 13px; color: #3f3b35;
 }
-.promise strong { display: block; font: 400 18px/1.2 "Instrument Serif", Georgia, serif; color: var(--ink); margin-bottom: 2px; }
+.promise strong { display: block; font: 400 17px/1.25 "Libre Caslon Text", Georgia, serif; color: var(--ink); margin-bottom: 2px; }
 .promise span { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; }
 .progress { margin-top: 10px; font-size: 13px; color: var(--blue); }
 
