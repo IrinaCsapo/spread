@@ -1,0 +1,58 @@
+{
+  "title": "Irina Csapo, Selected Works",
+  "page": { "width": 600, "height": 800 },
+  "surface": "studio",
+
+  "cover": {
+    "color": "#1b3fd0",
+    "ink": "#ffffff",
+    "eyebrow": "Irina Csapo",
+    "title": "Selected Works",
+    "subtitle": "Collage, mixed media & digital",
+    "image": "red-lips-bust",
+    "alt": "Collage of a silver bust on a red circle over blue paper, with a red television, lips and a remote control"
+  },
+  "endpaper": "#e8331f",
+
+  "pages": [
+    { "layout": "endpaper" },
+    {
+      "layout": "text",
+      "eyebrow": "Plates I–VI",
+      "heading": "Selected Works",
+      "body": "Paper, foil, circuit boards and the occasional machine dream. Drag a page corner, swipe, or use the arrow keys to turn."
+    },
+
+    { "layout": "plate", "image": "glass-pour", "caption": "Plate I", "note": "Digital",
+      "alt": "Iridescent glass pouring a stream of tiny pastel flowers into a second glass" },
+    { "layout": "bleed", "image": "doppel-effect",
+      "alt": "Framed collage in a red frame: a pixelated face on a phone screen, circuit boards, RAM sticks, red lips and a drawn eye" },
+
+    { "layout": "spread", "image": "glass-head",
+      "alt": "Transparent glass head in profile filled with pink flowers and blue petals" },
+
+    { "layout": "plate", "image": "dancers-cpu", "caption": "Plate IV", "note": "Collage with processors and RAM",
+      "alt": "Collage of 1920s dancers posed on RAM sticks and processors over sheet music, blue paper and coloured circles" },
+    { "layout": "plate", "image": "panther-ram", "caption": "Plate V", "note": "Collage with processors and RAM",
+      "alt": "Collage of a woman's neck and emerald necklace, a gold panther bangle and RAM sticks over torn purple, red and blue paper" },
+
+    { "layout": "bleed", "image": "red-lips-bust",
+      "alt": "Collage of a silver bust on a red circle over blue paper, with a red television, lips and a remote control" },
+    {
+      "layout": "half",
+      "image": "artist-garden",
+      "focus": "60% 30%",
+      "alt": "Irina in a red dress holding a cardboard pinhole viewer in a sunlit garden",
+      "eyebrow": "The artist",
+      "heading": "Irina Csapo",
+      "body": "Collage and mixed-media artist and product designer. Found paper, salvaged hardware and a lot of glue."
+    },
+
+    { "layout": "colophon", "body": "Made with Spread" },
+    { "layout": "endpaper" }
+  ],
+
+  "back": {
+    "text": "spread.irina.love"
+  }
+}

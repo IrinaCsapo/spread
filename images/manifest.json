@@ -1,0 +1,128 @@
+{
+  "artist-garden": {
+    "width": 1506,
+    "height": 2000,
+    "files": {
+      "2000": {
+        "src": "images/artist-garden.webp",
+        "width": 1506,
+        "height": 2000,
+        "kb": 194
+      },
+      "1000": {
+        "src": "images/artist-garden-1000.webp",
+        "width": 753,
+        "height": 1000,
+        "kb": 78
+      }
+    }
+  },
+  "dancers-cpu": {
+    "width": 1500,
+    "height": 2000,
+    "files": {
+      "2000": {
+        "src": "images/dancers-cpu.webp",
+        "width": 1500,
+        "height": 2000,
+        "kb": 280
+      },
+      "1000": {
+        "src": "images/dancers-cpu-1000.webp",
+        "width": 750,
+        "height": 1000,
+        "kb": 80
+      }
+    }
+  },
+  "doppel-effect": {
+    "width": 1649,
+    "height": 2000,
+    "files": {
+      "2000": {
+        "src": "images/doppel-effect.webp",
+        "width": 1649,
+        "height": 2000,
+        "kb": 210
+      },
+      "1000": {
+        "src": "images/doppel-effect-1000.webp",
+        "width": 825,
+        "height": 1000,
+        "kb": 67
+      }
+    }
+  },
+  "glass-head": {
+    "width": 2000,
+    "height": 1600,
+    "files": {
+      "2000": {
+        "src": "images/glass-head.webp",
+        "width": 2000,
+        "height": 1600,
+        "kb": 149
+      },
+      "1000": {
+        "src": "images/glass-head-1000.webp",
+        "width": 1000,
+        "height": 800,
+        "kb": 40
+      }
+    }
+  },
+  "glass-pour": {
+    "width": 1507,
+    "height": 2000,
+    "files": {
+      "2000": {
+        "src": "images/glass-pour.webp",
+        "width": 1507,
+        "height": 2000,
+        "kb": 245
+      },
+      "1000": {
+        "src": "images/glass-pour-1000.webp",
+        "width": 753,
+        "height": 1000,
+        "kb": 86
+      }
+    }
+  },
+  "panther-ram": {
+    "width": 1500,
+    "height": 2000,
+    "files": {
+      "2000": {
+        "src": "images/panther-ram.webp",
+        "width": 1500,
+        "height": 2000,
+        "kb": 310
+      },
+      "1000": {
+        "src": "images/panther-ram-1000.webp",
+        "width": 750,
+        "height": 1000,
+        "kb": 90
+      }
+    }
+  },
+  "red-lips-bust": {
+    "width": 1649,
+    "height": 2000,
+    "files": {
+      "2000": {
+        "src": "images/red-lips-bust.webp",
+        "width": 1649,
+        "height": 2000,
+        "kb": 370
+      },
+      "1000": {
+        "src": "images/red-lips-bust-1000.webp",
+        "width": 825,
+        "height": 1000,
+        "kb": 118
+      }
+    }
+  }
+}
