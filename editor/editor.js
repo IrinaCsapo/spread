@@ -584,7 +584,7 @@
     });
     Object.keys(book).forEach(function (k) { if (!(k in out)) out[k] = book[k]; });
     out = JSON.parse(JSON.stringify(out));
-    Object.keys(out.images).forEach(function (n) { delete out.images[n].local; });
+    Object.keys(out.images).forEach(function (n) { delete out.images[n].local; delete out.images[n].saved; });
     out.pages.concat(out.cover).forEach(function (p) { delete p.ai; });
     return JSON.stringify(out, null, 2) + '\n';
   }
@@ -606,43 +606,216 @@
   // Titles Claude suggested go out only once you have seen them.
   function titlesOk() {
     var n = book.pages.filter(function (p) { return p.ai && p.ai.caption && p.caption; }).length;
-    return !n || confirm(n + (n === 1 ? ' title is' : ' titles are') + ' still an AI suggestion. Publish ' + (n === 1 ? 'it as it is' : 'them as they are') + '?\n\nChoose Cancel to review them under Edit book.');
+    return !n || confirm(n + (n === 1 ? ' title is' : ' titles are') + ' still an AI suggestion. Save ' + (n === 1 ? 'it as it is' : 'them as they are') + '?\n\nChoose Cancel to review them under Edit book.');
   }
 
-  function publish() {
+  /* ---------- Save: one commit to the spread repo through the GitHub API ---------- */
+
+  var OG_START = '<!-- spread:og -->';
+  var OG_END = '<!-- /spread:og -->';
+
+  function ghSettings() {
+    try { return JSON.parse(localStorage.getItem('spread-github') || 'null') || {}; } catch (e) { return {}; }
+  }
+  function askGh() {
+    var s = ghSettings();
+    $('gh-repo').value = s.repo || 'IrinaCsapo/spread';
+    $('gh-token').value = s.token || '';
+    return new Promise(function (resolve) {
+      var d = $('gh-dialog');
+      d.addEventListener('close', function once() {
+        d.removeEventListener('close', once);
+        if (d.returnValue !== 'save') return resolve(null);
+        var next = { repo: $('gh-repo').value.trim().replace(/^https:\/\/github\.com\//, '').replace(/\/+$/, ''), token: $('gh-token').value.trim() };
+        try { localStorage.setItem('spread-github', JSON.stringify(next)); } catch (e) {}
+        resolve(next);
+      });
+      d.showModal();
+    });
+  }
+
+  function ghApi(s, method, path, body) {
+    return fetch('https://api.github.com/repos/' + s.repo + path, {
+      method: method,
+      headers: {
+        Authorization: 'Bearer ' + s.token,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json'
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      cache: 'no-store'
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (data) {
+        if (r.ok) return data;
+        var err = new Error(data.message || 'GitHub said ' + r.status);
+        err.status = r.status;
+        throw err;
+      });
+    });
+  }
+
+  function escapeHtml(t) {
+    return String(t || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // Link previews (WhatsApp, iMessage, Slack) read these tags; they cannot run the book's JavaScript.
+  function ogBlock(site) {
+    var c = book.cover || {};
+    var title = [c.eyebrow, c.title].filter(Boolean).join(', ') || book.title || 'Spread';
+    var desc = c.subtitle ? c.subtitle + '. A book you can page through.' : 'A book you can page through.';
+    return [
+      OG_START,
+      '  <title>' + escapeHtml(title) + ' · Spread</title>',
+      '  <meta name="description" content="' + escapeHtml(desc) + '">',
+      '  <meta property="og:type" content="website">',
+      '  <meta property="og:url" content="' + site + '">',
+      '  <meta property="og:title" content="' + escapeHtml(title) + '">',
+      '  <meta property="og:description" content="' + escapeHtml(desc) + '">',
+      '  <meta property="og:image" content="' + site + 'images/og.jpg">',
+      '  <meta property="og:image:width" content="1200">',
+      '  <meta property="og:image:height" content="630">',
+      '  <meta name="twitter:card" content="summary_large_image">',
+      '  ' + OG_END
+    ].join('\n');
+  }
+
+  // The picture a shared link shows: the cover image on the cover colour, with the title.
+  function ogImage() {
+    var c = book.cover || {};
+    if (!c.image || !book.images[c.image]) return Promise.resolve(null);
+    return Promise.all([
+      smallBlob(c.image).then(decode),
+      document.fonts ? document.fonts.load('64px "Libre Caslon Display"').catch(function () {}) : null
+    ]).then(function (res) {
+      var src = res[0], d = dims(src);
+      var cv = document.createElement('canvas');
+      cv.width = 1200; cv.height = 630;
+      var x = cv.getContext('2d');
+      x.fillStyle = c.color || '#1b3fd0';
+      x.fillRect(0, 0, 1200, 630);
+      var h = 510, w = Math.min(560, d.w * h / d.h);
+      h = w * d.h / d.w;
+      var left = 70, top = (630 - h) / 2;
+      x.shadowColor = 'rgba(0,0,0,.35)'; x.shadowBlur = 30; x.shadowOffsetY = 12;
+      x.imageSmoothingQuality = 'high';
+      x.drawImage(src, left, top, w, h);
+      x.shadowColor = 'transparent';
+      x.fillStyle = c.ink || '#fff';
+      var tx = left + w + 60, maxW = 1200 - tx - 60;
+      if (c.eyebrow) { x.font = '500 22px "Albert Sans", sans-serif'; x.fillText(c.eyebrow.toUpperCase(), tx, 250, maxW); }
+      x.font = '64px "Libre Caslon Display", Georgia, serif';
+      wrap(x, c.title || book.title || '', tx, 330, maxW, 70);
+      if (src.close) src.close();
+      return new Promise(function (resolve) { cv.toBlob(resolve, 'image/jpeg', 0.86); });
+    }).catch(function () { return null; });
+  }
+  function wrap(x, text, left, top, maxW, lh) {
+    var line = '', y = top;
+    text.split(/\s+/).forEach(function (word) {
+      var test = line ? line + ' ' + word : word;
+      if (x.measureText(test).width > maxW && line) { x.fillText(line, left, y); line = word; y += lh; }
+      else line = test;
+    });
+    if (line) x.fillText(line, left, y);
+  }
+
+  function b64ToText(b64) {
+    var bin = atob(b64.replace(/\n/g, ''));
+    return new TextDecoder().decode(Uint8Array.from(bin, function (ch) { return ch.charCodeAt(0); }));
+  }
+
+  function saveOnline() {
     if (!titlesOk()) { setMode(true); return; }
-    if (!window.showDirectoryPicker) { downloadZip(); return; }
-    var dir, written = 0, deleted = 0;
-    window.showDirectoryPicker({ id: 'spread-repo', mode: 'readwrite' }).then(function (d) {
-      dir = d;
-      return dir.getFileHandle('spread.js').catch(function () {
-        throw new Error('That folder is not the spread repo. Choose Documents/GitHub/spread.');
+    var s = ghSettings();
+    (s.repo && s.token ? Promise.resolve(s) : askGh()).then(function (gh) {
+      if (!gh) return;
+      var btn = $('publish');
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      var stamp = new Date().toISOString();
+      var site = new URL('../', location.href).href;
+      var head, baseTree, existing = {}, uploaded = [];
+
+      ghApi(gh, 'GET', '/git/ref/heads/main').then(function (ref) {
+        head = ref.object.sha;
+        return ghApi(gh, 'GET', '/git/commits/' + head);
+      }).then(function (c) {
+        baseTree = c.tree.sha;
+        return ghApi(gh, 'GET', '/git/trees/' + baseTree + '?recursive=1');
+      }).then(function (tree) {
+        tree.tree.forEach(function (t) { existing[t.path] = true; });
+        // New image files, uploaded one at a time so a slow connection does not time out.
+        var files = [];
+        imageNames().forEach(function (n) {
+          var e = book.images[n];
+          if (!e.local) return;
+          [e.src, e.small].forEach(function (path) {
+            var f = fileOf(path);
+            if (blobs[f] && !(e.saved && existing[path])) files.push({ path: path, blob: blobs[f], name: n });
+          });
+        });
+        var entries = [];
+        return files.reduce(function (chain, f, i) {
+          return chain.then(function () {
+            btn.textContent = 'Saving ' + (i + 1) + '/' + files.length + '…';
+            return toBase64(f.blob).then(function (data) {
+              return ghApi(gh, 'POST', '/git/blobs', { content: data, encoding: 'base64' });
+            }).then(function (b) {
+              entries.push({ path: f.path, mode: '100644', type: 'blob', sha: b.sha });
+              uploaded.push(f.name);
+            });
+          });
+        }, Promise.resolve()).then(function () { return entries; });
+      }).then(function (entries) {
+        btn.textContent = 'Saving…';
+        removed.forEach(function (path) {
+          if (/^images\//.test(path) && existing[path] && !stillUsed(path)) entries.push({ path: path, mode: '100644', type: 'blob', sha: null });
+        });
+        return ogImage().then(function (og) {
+          if (!og) return null;
+          return toBase64(og).then(function (data) { return ghApi(gh, 'POST', '/git/blobs', { content: data, encoding: 'base64' }); });
+        }).then(function (ogBlob) {
+          if (ogBlob) entries.push({ path: 'images/og.jpg', mode: '100644', type: 'blob', sha: ogBlob.sha });
+          return ghApi(gh, 'GET', '/contents/index.html?ref=main');
+        }).then(function (file) {
+          var html = b64ToText(file.content);
+          var a = html.indexOf(OG_START), z = html.indexOf(OG_END);
+          if (a !== -1 && z > a) {
+            entries.push({ path: 'index.html', mode: '100644', type: 'blob', content: html.slice(0, a) + ogBlock(site).trim() + html.slice(z + OG_END.length) });
+          }
+          book.updated = stamp;
+          entries.push({ path: 'book.json', mode: '100644', type: 'blob', content: exportJSON() });
+          return ghApi(gh, 'POST', '/git/trees', { base_tree: baseTree, tree: entries });
+        });
+      }).then(function (tree) {
+        return ghApi(gh, 'POST', '/git/commits', {
+          message: 'Update the book from the Spread editor',
+          tree: tree.sha,
+          parents: [head]
+        });
+      }).then(function (c) {
+        return ghApi(gh, 'PATCH', '/git/refs/heads/main', { sha: c.sha });
+      }).then(function () {
+        uploaded.forEach(function (n) { if (book.images[n]) book.images[n].saved = true; });
+        removed = [];
+        return put('kv', 'draft', { book: book, removed: removed, at: Date.now() });
+      }).then(function () {
+        location.href = '../?saved=' + encodeURIComponent(stamp);
+      }).catch(function (err) {
+        btn.disabled = false;
+        btn.textContent = 'Save';
+        var msg = err && err.message === 'Failed to fetch' ? 'Could not reach GitHub. Check your connection and try again.'
+          : err && err.status === 401 ? 'GitHub did not accept the token. Paste a new one.'
+          : err && (err.status === 403 || err.status === 404) ? 'That token cannot write to ' + gh.repo + '. Check it has Contents: Read and write for that repo.'
+          : err && err.status === 422 ? 'The repo changed while saving. Press Save again.'
+          : 'Could not save: ' + ((err && err.message) || 'unknown error');
+        if (err && err.status === 401) {
+          try { localStorage.removeItem('spread-github'); } catch (e) {}
+        }
+        toast(msg + ' Your draft is safe in this browser.', 12000);
       });
-    }).then(function () {
-      return dir.getDirectoryHandle('images', { create: true });
-    }).then(function (imgDir) {
-      var writes = localFiles().map(function (f) {
-        return imgDir.getFileHandle(f[0], { create: true }).then(function (fh) { return fh.createWritable(); })
-          .then(function (w) { return w.write(f[1]).then(function () { written++; return w.close(); }); });
-      });
-      var deletes = removed.filter(function (p) { return /^images\//.test(p) && !stillUsed(p); }).map(function (p) {
-        return imgDir.removeEntry(fileOf(p)).then(function () { deleted++; }).catch(function () {});
-      });
-      return Promise.all(writes.concat(deletes));
-    }).then(function () {
-      return dir.getFileHandle('book.json', { create: true });
-    }).then(function (fh) { return fh.createWritable(); })
-      .then(function (w) { return w.write(exportJSON()).then(function () { return w.close(); }); })
-      .then(function () {
-        commit(function () { removed = []; });
-        toast('Saved to your spread folder: book.json, ' + written + ' image files written' +
-          (deleted ? ', ' + deleted + ' old ones removed' : '') +
-          '. Now commit and push in GitHub Desktop; it goes live in a minute or two.', 12000);
-      })
-      .catch(function (err) {
-        if (err && err.name === 'AbortError') return;
-        toast(err && err.message ? err.message : 'Could not save to that folder.', 8000);
-      });
+    });
   }
 
   /* A zip with no compression: images are already compressed, so storing them is enough. */
@@ -695,7 +868,6 @@
   }
 
   function downloadZip() {
-    if (!titlesOk()) { setMode(true); return; }
     var entries = [['book.json', exportJSON()]].concat(localFiles().map(function (f) { return ['images/' + f[0], f[1]]; }));
     var gone = removed.filter(function (p) { return !stillUsed(p); });
     if (gone.length) entries.push(['DELETE-THESE.txt', 'These image files are no longer in the book. Delete them from the spread folder:\n\n' + gone.join('\n') + '\n']);
@@ -704,7 +876,7 @@
       document.body.appendChild(a);
       a.click();
       a.remove();
-      toast('Downloaded spread-book.zip. Unzip it into your spread folder (replace book.json), then commit and push.', 10000);
+      toast('Backup downloaded: spread-book.zip has book.json and the images added here.', 8000);
     });
   }
 
@@ -934,7 +1106,8 @@
     if (!confirm('Start over from the published book? This clears the draft and any images added here that you have not published.')) return;
     Promise.all([clear('kv'), clear('files')]).then(loadLive).then(function () { currentPage = 0; render(); toast('Back to the published book.'); });
   });
-  $('publish').addEventListener('click', publish);
+  $('publish').addEventListener('click', saveOnline);
+  $('gh-settings').addEventListener('click', function () { askGh(); });
   $('zip').addEventListener('click', downloadZip);
   document.querySelectorAll('[data-add]').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -942,7 +1115,6 @@
       commit(function () { book.pages.push(kind === 'text' ? { layout: 'text', heading: 'New page' } : { layout: 'endpaper' }); });
     });
   });
-  if (!window.showDirectoryPicker) $('publish').title = 'This browser cannot save into a folder, so Publish downloads a zip.';
 
   loadDraft().then(function (had) { return had ? null : loadLive(); }).then(render).catch(function (err) {
     console.error(err);

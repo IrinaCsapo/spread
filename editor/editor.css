@@ -167,3 +167,6 @@ body.is-simple #edit-panels { display: none; }
 .dialog p { margin: 0 0 14px; color: var(--muted); font-size: 13px; }
 .dialog .field { margin-bottom: 12px; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+.dialog-help { font-size: 12px !important; }
+.dialog-help a { color: var(--blue); }
+#publish:disabled { opacity: .75; cursor: progress; }

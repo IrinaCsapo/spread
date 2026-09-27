@@ -20,8 +20,8 @@
       <button class="btn btn--quiet" id="undo" type="button" disabled>Undo</button>
       <button class="btn" id="mode" type="button" aria-pressed="false">Edit book</button>
       <button class="btn btn--quiet" id="reset" type="button">Start over</button>
-      <button class="btn btn--quiet" id="zip" type="button">Download zip</button>
-      <button class="btn btn--primary" id="publish" type="button">Publish</button>
+      <button class="btn btn--quiet" id="zip" type="button" title="Download book.json and the images added here, as a zip">Download backup</button>
+      <button class="btn btn--primary" id="publish" type="button">Save</button>
     </div>
   </header>
 
@@ -46,6 +46,7 @@
         <div class="ai-row">
           <button class="btn btn--ai" id="arrange" type="button">Arrange with AI</button>
           <button class="link" id="ai-settings" type="button">AI settings</button>
+          <button class="link" id="gh-settings" type="button">Save settings</button>
         </div>
         <div class="progress" id="progress" hidden></div>
         <ul class="tray" id="tray" aria-label="Images in this book"></ul>
@@ -80,6 +81,20 @@
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <dialog class="dialog" id="gh-dialog">
+    <form method="dialog">
+      <h2>Connect your site</h2>
+      <p>Save puts your book online by committing it to your GitHub repo. Paste a fine-grained token that can only write to that repo. It is kept in this browser only.</p>
+      <label class="field"><span>Repository</span><input class="input" id="gh-repo" type="text" placeholder="IrinaCsapo/spread" required></label>
+      <label class="field"><span>GitHub token</span><input class="input" id="gh-token" type="password" autocomplete="off" placeholder="github_pat_…" required></label>
+      <p class="dialog-help"><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create a token</a>: Repository access “Only select repositories” → spread; Permissions → Contents: Read and write.</p>
+      <div class="dialog-actions">
+        <button class="btn btn--quiet" value="cancel" formnovalidate type="submit">Cancel</button>
+        <button class="btn btn--primary" value="save" type="submit">Save</button>
+      </div>
+    </form>
+  </dialog>
 
   <dialog class="dialog" id="ai-dialog">
     <form method="dialog" id="ai-form">
