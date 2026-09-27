@@ -12,12 +12,13 @@
   <link rel="stylesheet" href="../spread.css">
   <link rel="stylesheet" href="editor.css">
 </head>
-<body>
+<body class="is-simple">
   <header class="bar">
     <a class="logo" href="../">spread<span>.irina.love</span></a>
     <span class="bar-title">Editor</span>
     <div class="bar-actions">
       <button class="btn btn--quiet" id="undo" type="button" disabled>Undo</button>
+      <button class="btn" id="mode" type="button" aria-pressed="false">Edit book</button>
       <button class="btn btn--quiet" id="reset" type="button">Start over</button>
       <button class="btn btn--quiet" id="zip" type="button">Download zip</button>
       <button class="btn btn--primary" id="publish" type="button">Publish</button>
@@ -40,12 +41,17 @@
         <p class="promise">
           <strong>Your art stays yours.</strong>
           We store your images only to show your book. We never use them for anything else, and never to train AI. That's a promise.
-          <span>Right now nothing is uploaded: images stay in this browser until you publish to your own site.</span>
+          <span>Images stay in this browser until you publish to your own site. If you choose Arrange with AI, small copies are sent to Anthropic's Claude only to suggest a layout and text. Anthropic does not train on them and deletes them within 30 days.</span>
         </p>
+        <div class="ai-row">
+          <button class="btn btn--ai" id="arrange" type="button">Arrange with AI</button>
+          <button class="link" id="ai-settings" type="button">AI settings</button>
+        </div>
         <div class="progress" id="progress" hidden></div>
         <ul class="tray" id="tray" aria-label="Images in this book"></ul>
       </div>
 
+      <div id="edit-panels">
       <details class="block" id="cover-block">
         <summary><h2>Cover, colours &amp; surface</h2></summary>
         <div class="fields" id="cover-fields"></div>
@@ -62,6 +68,7 @@
           <button class="btn btn--small" type="button" data-add="endpaper">+ Blank page</button>
         </div>
       </div>
+      </div>
     </section>
 
     <section class="preview-col" aria-label="Preview">
@@ -73,6 +80,19 @@
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <dialog class="dialog" id="ai-dialog">
+    <form method="dialog" id="ai-form">
+      <h2>Connect AI</h2>
+      <p>Paste the address of your Spread AI Worker and the passphrase you set for it. They are kept in this browser only.</p>
+      <label class="field"><span>Worker address</span><input class="input" id="ai-url" type="url" placeholder="https://spread-ai.yourname.workers.dev" required></label>
+      <label class="field"><span>Passphrase</span><input class="input" id="ai-key" type="password" autocomplete="off" required></label>
+      <div class="dialog-actions">
+        <button class="btn btn--quiet" value="cancel" formnovalidate type="submit">Cancel</button>
+        <button class="btn btn--primary" value="save" type="submit">Save</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="../vendor/page-flip.browser.js"></script>
   <script src="../spread.js"></script>

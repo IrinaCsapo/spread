@@ -32,7 +32,7 @@
     endpaper: []
   };
   var LABELS = {
-    image: 'Image', caption: 'Caption', note: 'Note', alt: 'Description (for screen readers)',
+    image: 'Image', caption: 'Title or caption', note: 'Note', alt: 'Description (for screen readers)',
     focus: 'Crop from', eyebrow: 'Small heading', heading: 'Heading', body: 'Text'
   };
   var FOCUS = [['50% 50%', 'Centre'], ['50% 20%', 'Top'], ['50% 80%', 'Bottom'], ['20% 50%', 'Left'], ['80% 50%', 'Right']];
@@ -386,14 +386,28 @@
   }
 
   // Text edits change the book in place; one undo step per field, taken when it gains focus.
+  // A field Claude filled carries obj.ai[key] and is marked until you edit it or press Keep.
   function textField(obj, key, label, multiline) {
+    var isAI = !!(obj.ai && obj.ai[key]);
+    var tag, keep;
+    function accept() {
+      if (obj.ai) delete obj.ai[key];
+      input.classList.remove('is-ai');
+      if (tag) tag.remove();
+      if (keep) keep.remove();
+      save();
+    }
     var input = h(multiline ? 'textarea' : 'input', {
-      class: 'input', rows: multiline ? 3 : false, type: multiline ? false : 'text',
+      class: 'input' + (isAI ? ' is-ai' : ''), rows: multiline ? 3 : false, type: multiline ? false : 'text',
       onfocus: function () { history.push(snapshot()); $('undo').disabled = false; },
-      oninput: function () { obj[key] = input.value; save(); schedulePreview(); }
+      oninput: function () { obj[key] = input.value; if (isAI) accept(); save(); schedulePreview(); }
     });
     input.value = obj[key] || '';
-    return h('label', { class: 'field' }, [h('span', { text: label }), input]);
+    if (isAI) {
+      tag = h('span', { class: 'ai-tag', text: key === 'caption' ? 'AI suggestion' : 'AI' });
+      keep = h('button', { type: 'button', class: 'link keep', text: 'Keep', onclick: function (e) { e.preventDefault(); accept(); } });
+    }
+    return h('label', { class: 'field' }, [h('span', {}, [label, tag, keep]), input]);
   }
 
   function selectField(label, options, value, onchange) {
@@ -571,6 +585,7 @@
     Object.keys(book).forEach(function (k) { if (!(k in out)) out[k] = book[k]; });
     out = JSON.parse(JSON.stringify(out));
     Object.keys(out.images).forEach(function (n) { delete out.images[n].local; });
+    out.pages.concat(out.cover).forEach(function (p) { delete p.ai; });
     return JSON.stringify(out, null, 2) + '\n';
   }
 
@@ -588,7 +603,14 @@
     return imageNames().some(function (n) { return book.images[n].src === path || book.images[n].small === path; });
   }
 
+  // Titles Claude suggested go out only once you have seen them.
+  function titlesOk() {
+    var n = book.pages.filter(function (p) { return p.ai && p.ai.caption && p.caption; }).length;
+    return !n || confirm(n + (n === 1 ? ' title is' : ' titles are') + ' still an AI suggestion. Publish ' + (n === 1 ? 'it as it is' : 'them as they are') + '?\n\nChoose Cancel to review them under Edit book.');
+  }
+
   function publish() {
+    if (!titlesOk()) { setMode(true); return; }
     if (!window.showDirectoryPicker) { downloadZip(); return; }
     var dir, written = 0, deleted = 0;
     window.showDirectoryPicker({ id: 'spread-repo', mode: 'readwrite' }).then(function (d) {
@@ -673,6 +695,7 @@
   }
 
   function downloadZip() {
+    if (!titlesOk()) { setMode(true); return; }
     var entries = [['book.json', exportJSON()]].concat(localFiles().map(function (f) { return ['images/' + f[0], f[1]]; }));
     var gone = removed.filter(function (p) { return !stillUsed(p); });
     if (gone.length) entries.push(['DELETE-THESE.txt', 'These image files are no longer in the book. Delete them from the spread folder:\n\n' + gone.join('\n') + '\n']);
@@ -685,7 +708,209 @@
     });
   }
 
+  /* ---------- Arrange with AI ---------- */
+
+  var AI_TIMEOUT = 240000;
+
+  function aiSettings() {
+    try { return JSON.parse(localStorage.getItem('spread-ai') || 'null') || {}; } catch (e) { return {}; }
+  }
+  function askSettings() {
+    var s = aiSettings();
+    $('ai-url').value = s.url || '';
+    $('ai-key').value = s.key || '';
+    return new Promise(function (resolve) {
+      var d = $('ai-dialog');
+      d.addEventListener('close', function once() {
+        d.removeEventListener('close', once);
+        if (d.returnValue !== 'save') return resolve(null);
+        var next = { url: $('ai-url').value.trim().replace(/\/+$/, ''), key: $('ai-key').value };
+        try { localStorage.setItem('spread-ai', JSON.stringify(next)); } catch (e) {}
+        resolve(next);
+      });
+      d.showModal();
+    });
+  }
+
+  function toBase64(blob) {
+    return new Promise(function (resolve, reject) {
+      var r = new FileReader();
+      r.onload = function () { resolve(String(r.result).split(',')[1]); };
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
+  }
+
+  // The 1000px copy of each image: made in this browser, or fetched from the published site.
+  function smallBlob(name) {
+    var e = book.images[name];
+    var f = fileOf(e.small || e.src);
+    if (e.local && blobs[f]) return Promise.resolve(blobs[f]);
+    return fetch(BASE + (e.small || e.src)).then(function (r) {
+      if (!r.ok) throw new Error('Could not load ' + name);
+      return r.blob();
+    });
+  }
+
+  function humanText(p) {
+    var out = {};
+    ['caption', 'note', 'heading', 'body'].forEach(function (k) {
+      if (p[k] && !(p.ai && p.ai[k])) out[k] = p[k];
+    });
+    return out;
+  }
+
+  function arrange() {
+    var names = imageNames();
+    if (!names.length) { toast('Add some images first.'); return; }
+    var settings = aiSettings();
+    var ready = settings.url && settings.key ? Promise.resolve(settings) : askSettings();
+    ready.then(function (s) {
+      if (!s) return;
+      var btn = $('arrange');
+      var progress = $('progress');
+      btn.disabled = true;
+      btn.setAttribute('aria-busy', 'true');
+      progress.hidden = false;
+      progress.textContent = 'Getting ' + names.length + ' images ready…';
+      var started = Date.now();
+
+      Promise.all(names.map(function (n) {
+        return smallBlob(n).then(function (b) {
+          return toBase64(b).then(function (data) {
+            var e = book.images[n];
+            var page = book.pages.find(function (p) { return p.image === n; }) || {};
+            return { id: n, type: b.type || 'image/webp', width: e.width, height: e.height, data: data, text: humanText(page) };
+          });
+        });
+      })).then(function (images) {
+        progress.textContent = 'Claude is looking at your ' + images.length + ' images. This usually takes under a minute.';
+        var ctrl = new AbortController();
+        var timer = setTimeout(function () { ctrl.abort(); }, AI_TIMEOUT);
+        return fetch(s.url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Spread-Key': s.key },
+          body: JSON.stringify({ images: images, context: { artist: book.cover.eyebrow || '', title: book.cover.title || '' } }),
+          signal: ctrl.signal
+        }).then(function (r) {
+          clearTimeout(timer);
+          return r.json().catch(function () { return {}; }).then(function (body) {
+            if (r.status === 401) {
+              try { localStorage.removeItem('spread-ai'); } catch (e) {}
+              throw new Error('The passphrase was not accepted. Check it under AI settings.');
+            }
+            if (!r.ok || !body.plan) throw new Error(body.error || 'Something went wrong (' + r.status + ').');
+            return body;
+          });
+        });
+      }).then(function (res) {
+        applyPlan(res.plan);
+        var secs = Math.round((Date.now() - started) / 1000);
+        var titles = book.pages.filter(function (p) { return p.ai && p.ai.caption; }).length;
+        toast('Arranged by Claude in ' + secs + 's.' + (titles ? ' ' + (titles === 1 ? 'Its title is a suggestion' : 'Its ' + titles + ' titles are suggestions') + ': check them under Edit book.' : '') + ' Undo puts everything back.', 12000);
+      }).catch(function (err) {
+        var msg = err && err.name === 'AbortError' ? 'Claude took too long. Try again, or with fewer images.'
+          : err && err.message === 'Failed to fetch' ? 'Could not reach the AI Worker. Check the address under AI settings.'
+          : (err && err.message) || 'Something went wrong.';
+        toast(msg, 10000);
+      }).then(function () {
+        btn.disabled = false;
+        btn.removeAttribute('aria-busy');
+        progress.hidden = true;
+      });
+    });
+  }
+
+  // Claude's plan replaces the order and layouts. Text you wrote wins over its suggestions;
+  // everything it fills in is flagged so the editor can mark it.
+  function applyPlan(plan) {
+    commit(function () {
+      var known = book.images;
+      var seen = {};
+      var old = {};
+      book.pages.forEach(function (p) { if (p.image && !old[p.image]) old[p.image] = p; });
+
+      function fill(page, key, value, prior) {
+        if (prior && prior[key] && !(prior.ai && prior.ai[key])) { page[key] = prior[key]; return; }
+        if (!value) return;
+        page[key] = value;
+        (page.ai = page.ai || {})[key] = true;
+      }
+
+      var imagePages = [];
+      (plan.pages || []).forEach(function (pp) {
+        if (!known[pp.image] || seen[pp.image]) return;
+        seen[pp.image] = true;
+        var wide = known[pp.image].width / known[pp.image].height > 1.15;
+        var layout = pp.layout === 'spread' && !wide ? 'plate' : pp.layout;
+        var page = { layout: layout, image: pp.image };
+        var prior = old[pp.image];
+        // Only fill what the layout shows: full-page and across-the-fold pieces carry no caption.
+        if (layout === 'half') {
+          fill(page, 'heading', pp.heading, prior);
+          fill(page, 'body', pp.body, prior);
+        } else if (layout === 'plate') {
+          fill(page, 'caption', pp.title_suggestion, prior);
+          fill(page, 'note', pp.note, prior);
+        }
+        fill(page, 'alt', pp.alt, prior);
+        if (layout === 'bleed' || layout === 'half') page.focus = pp.focus || '50% 50%';
+        imagePages.push(page);
+      });
+      // Anything Claude skipped keeps a plain page at the end.
+      imageNames().forEach(function (n) { if (!seen[n]) imagePages.push({ layout: 'plate', image: n }); });
+
+      var intro = book.pages.find(function (p) { return p.layout === 'text'; });
+      var introPage = { layout: 'text' };
+      ['eyebrow', 'heading', 'body'].forEach(function (k) { fill(introPage, k, plan.intro && plan.intro[k], intro); });
+      var rest = book.pages.filter(function (p) { return !p.image && p !== intro && p.layout !== 'endpaper'; });
+
+      book.pages = [{ layout: 'endpaper' }, introPage].concat(imagePages, rest, [{ layout: 'endpaper' }]);
+      fixSpreads();
+
+      var c = plan.cover || {};
+      if (known[c.image]) book.cover.image = c.image;
+      if (c.color) book.cover.color = c.color;
+      if (c.ink) book.cover.ink = c.ink;
+      if (c.endpaper) book.endpaper = c.endpaper;
+      if (Spread.surfaces.indexOf(c.surface) !== -1) book.surface = c.surface;
+      if (c.subtitle && (!book.cover.subtitle || (book.cover.ai && book.cover.ai.subtitle))) {
+        book.cover.subtitle = c.subtitle;
+        (book.cover.ai = book.cover.ai || {}).subtitle = true;
+      }
+    });
+    currentPage = 0;
+    renderPreview();
+  }
+
+  // A spread must open on a left-hand page: pull the next single image in front of it,
+  // or add a blank page if there is none.
+  function fixSpreads() {
+    for (var i = 0; i < book.pages.length; i++) {
+      var p = book.pages[i];
+      if (p.layout !== 'spread' || startOf(i) % 2 === 1) continue;
+      var j = -1;
+      for (var k = i + 1; k < book.pages.length; k++) {
+        if (book.pages[k].image && book.pages[k].layout !== 'spread') { j = k; break; }
+      }
+      if (j !== -1) book.pages.splice(i, 0, book.pages.splice(j, 1)[0]);
+      else book.pages.splice(i, 0, { layout: 'endpaper' });
+    }
+  }
+
+  function setMode(editing) {
+    document.body.classList.toggle('is-simple', !editing);
+    $('mode').textContent = editing ? 'Done editing' : 'Edit book';
+    $('mode').setAttribute('aria-pressed', String(editing));
+    try { localStorage.setItem('spread-mode', editing ? 'edit' : 'simple'); } catch (e) {}
+  }
+
   /* ---------- wiring ---------- */
+
+  $('arrange').addEventListener('click', arrange);
+  $('ai-settings').addEventListener('click', function () { askSettings(); });
+  $('mode').addEventListener('click', function () { setMode(document.body.classList.contains('is-simple')); });
+  try { setMode(localStorage.getItem('spread-mode') === 'edit'); } catch (e) { setMode(false); }
 
   $('file').addEventListener('change', function (e) { addFiles(e.target.files); e.target.value = ''; });
   var drop = $('drop');

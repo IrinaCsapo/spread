@@ -8,7 +8,15 @@ Open https://spread.irina.love/editor/ (or `editor/` locally). Drop in up to 30 
 
 The draft lives in your browser (IndexedDB) until you publish. **Publish** (Chrome or Edge) asks for the `spread` folder and writes `book.json` plus the new image files straight into it, deleting files of images you removed. Other browsers download a zip to unzip into the folder instead. Then commit and push in GitHub Desktop.
 
-Nothing is uploaded anywhere: there is no server or database.
+Nothing is uploaded anywhere unless you use Arrange with AI: there is no database.
+
+### Arrange with AI
+
+The editor opens in a simple view: images, **Arrange with AI** and the preview. **Edit book** shows the cover and page controls.
+
+Arrange with AI sends the 1000px copy of every image to the Spread AI Worker (`ai-worker/`), which asks Claude (`claude-opus-5`) for a plan: order, layouts, cover image, cover/ink/endpaper colours, surface, alt text, notes, title suggestions and title-page text. Text you wrote is kept; what Claude fills in is tinted and tagged in Edit book until you edit it or press Keep, and Publish asks before sending out unconfirmed titles. One Undo reverts the whole arrangement. Roughly 1,000 input tokens per image, so a 30-image book costs about 20 to 40p.
+
+The Worker holds the Anthropic key; the editor only knows the Worker's address and a passphrase (saved in the browser under AI settings). See `ai-worker/README.md` to deploy it.
 
 ## Add images from the command line
 

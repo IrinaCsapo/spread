@@ -1,0 +1,10 @@
+# Spread AI: a tiny Cloudflare Worker that holds the Anthropic API key and asks
+# Claude to arrange a book. Secrets are set with `npx wrangler secret put`, never here.
+name = "spread-ai"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Pages allowed to call this Worker (comma-separated). Local previews are allowed too.
+ALLOWED_ORIGINS = "https://spread.irina.love"
