@@ -210,29 +210,29 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  gap: 3cqw;
+  gap: 2.6cqw;
 }
 .spread-page--text .spread-text { justify-content: center; }
 .spread-text--half { inset: 50% 11cqw 10cqw; justify-content: center; }
 .spread-eyebrow {
   margin: 0;
-  font-size: 2.3cqw;
+  font-size: 2.1cqw;
   letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--paper-muted);
 }
 .spread-heading {
   margin: 0;
-  font: 400 11cqw/0.95 var(--spread-serif);
+  font: 400 9cqw/0.98 var(--spread-serif);
   letter-spacing: -.01em;
   color: var(--paper-ink);
 }
-.spread-text--half .spread-heading { font-size: 8cqw; }
+.spread-text--half .spread-heading { font-size: 6.5cqw; }
 .spread-body {
   margin: 0;
-  max-width: 30em;
-  font-size: 3cqw;
-  line-height: 1.5;
+  max-width: 34em;
+  font-size: max(10.5px, 2.5cqw);
+  line-height: 1.6;
   color: #3f3b35;
 }
 .spread-page--colophon .spread-text { justify-content: flex-end; align-items: center; }
