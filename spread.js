@@ -26,15 +26,27 @@
     return node;
   }
 
-  // Resolves an image name to its converted files, relative to book.json.
-  function img(name, base, alt, cls, parent) {
-    var node = el('img', cls, parent);
-    node.src = base + 'images/' + name + '.webp';
-    node.srcset = base + 'images/' + name + '-1000.webp 1000w, ' + base + 'images/' + name + '.webp 2000w';
-    node.sizes = '(max-width: 700px) 100vw, 1200px';
-    node.alt = alt || '';
-    node.draggable = false;
-    return node;
+  // Returns img(name, alt, cls, parent) for one book. An image named in cfg.images uses
+  // those files ({ src, small, width, smallWidth }); any other name falls back to
+  // images/<name>.webp and images/<name>-1000.webp. Paths are relative to book.json.
+  function imageMaker(cfg, base) {
+    var list = cfg.images || {};
+    function url(u) { return /^(blob:|data:|https?:|\/)/.test(u) ? u : base + u; }
+    return function (name, alt, cls, parent) {
+      var node = el('img', cls, parent);
+      var entry = list[name];
+      if (entry) {
+        node.src = url(entry.src);
+        if (entry.small) node.srcset = url(entry.small) + ' ' + (entry.smallWidth || 1000) + 'w, ' + url(entry.src) + ' ' + (entry.width || 2400) + 'w';
+      } else {
+        node.src = base + 'images/' + name + '.webp';
+        node.srcset = base + 'images/' + name + '-1000.webp 1000w, ' + base + 'images/' + name + '.webp 2000w';
+      }
+      node.sizes = '(max-width: 700px) 100vw, 1200px';
+      node.alt = alt || '';
+      node.draggable = false;
+      return node;
+    };
   }
 
   function page(kind, extra) {
@@ -42,7 +54,7 @@
     return node;
   }
 
-  function buildCover(cfg, base, back) {
+  function buildCover(cfg, img, back) {
     var c = cfg.cover || {};
     var node = page(back ? 'back' : 'cover');
     node.dataset.density = 'hard';
@@ -54,14 +66,14 @@
     text('p', 'spread-cover__eyebrow', c.eyebrow, inner);
     if (c.image) {
       var frame = el('div', 'spread-cover__plate', inner);
-      img(c.image, base, c.alt, '', frame);
+      img(c.image, c.alt, '', frame);
     }
     text('h2', 'spread-cover__title', c.title, inner);
     text('p', 'spread-cover__subtitle', c.subtitle, inner);
     return node;
   }
 
-  function buildPages(p, base) {
+  function buildPages(p, img) {
     var node, box;
     switch (p.layout) {
       case 'endpaper':
@@ -80,7 +92,7 @@
         node = page('plate');
         var figure = el('figure', 'spread-plate', node);
         var frame = el('div', 'spread-plate__frame', figure);
-        img(p.image, base, p.alt, '', frame);
+        img(p.image, p.alt, '', frame);
         if (p.caption || p.note) {
           var cap = el('figcaption', 'spread-caption', figure);
           text('span', 'spread-caption__title', p.caption, cap);
@@ -90,13 +102,13 @@
 
       case 'bleed':
         node = page('bleed');
-        img(p.image, base, p.alt, 'spread-fill', node).style.objectPosition = p.focus || '50% 50%';
+        img(p.image, p.alt, 'spread-fill', node).style.objectPosition = p.focus || '50% 50%';
         return [node];
 
       case 'half':
         node = page('half');
         var top = el('div', 'spread-half__image', node);
-        img(p.image, base, p.alt, 'spread-fill', top).style.objectPosition = p.focus || '50% 50%';
+        img(p.image, p.alt, 'spread-fill', top).style.objectPosition = p.focus || '50% 50%';
         box = el('div', 'spread-text spread-text--half', node);
         text('p', 'spread-eyebrow', p.eyebrow, box);
         text('h3', 'spread-heading', p.heading, box);
@@ -107,8 +119,8 @@
         // One image across the gutter: the same picture on two pages, each showing its half.
         var left = page('bleed', 'spread-page--span-left');
         var right = page('bleed', 'spread-page--span-right');
-        img(p.image, base, p.alt, 'spread-span', left);
-        img(p.image, base, '', 'spread-span', right).setAttribute('aria-hidden', 'true');
+        img(p.image, p.alt, 'spread-span', left);
+        img(p.image, '', 'spread-span', right).setAttribute('aria-hidden', 'true');
         return [left, right];
 
       default:
@@ -129,8 +141,11 @@
     }
   }
 
-  function mount(root, cfg, base) {
+  // opts.startPage opens the book at a page (the editor keeps your place between rebuilds).
+  function mount(root, cfg, base, opts) {
     base = base || '';
+    opts = opts || {};
+    var img = imageMaker(cfg, base);
     root.classList.add('spread');
     root.innerHTML = '';
     setSurface(root, cfg.surface || 'studio');
@@ -139,9 +154,9 @@
     var shift = el('div', 'spread-shift', stage);
     var bookEl = el('div', 'spread-book', shift);
 
-    var pages = [buildCover(cfg, base, false)];
+    var pages = [buildCover(cfg, img, false)];
     (cfg.pages || []).forEach(function (p) {
-      var built = buildPages(p, base);
+      var built = buildPages(p, img);
       if (p.layout === 'spread' && pages.length % 2 === 0) {
         console.warn('[spread] a "spread" starts on a right-hand page; add or remove a page before it so it lands across the gutter.');
       }
@@ -149,7 +164,7 @@
     });
     // Cover + inner pages must be odd so the back cover closes the book on its own.
     if (pages.length % 2 === 0) pages.push(page('endpaper'));
-    pages.push(buildCover(cfg, base, true));
+    pages.push(buildCover(cfg, img, true));
 
     // Colours live on the root: the page-curl library rewrites each page's inline style.
     var cover = cfg.cover || {};
@@ -163,6 +178,7 @@
     });
 
     var size = cfg.page || { width: 600, height: 800 };
+    var start = Math.max(0, Math.min(opts.startPage || 0, pages.length - 1));
     var reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     var flip = new St.PageFlip(bookEl, {
       width: size.width,
@@ -176,7 +192,8 @@
       maxShadowOpacity: 0.45,
       flippingTime: reduced ? 350 : 900,
       mobileScrollSupport: true,
-      usePortrait: true
+      usePortrait: true,
+      startPage: start
     });
     flip.loadFromHTML(bookEl.querySelectorAll('.spread-page'));
 
@@ -199,10 +216,11 @@
     root.tabIndex = 0;
     root.setAttribute('role', 'region');
     root.setAttribute('aria-label', cfg.title || 'Book');
-    root.addEventListener('keydown', function (e) {
+    function onKey(e) {
       if (e.key === 'ArrowRight') { flip.flipNext(); e.preventDefault(); }
       if (e.key === 'ArrowLeft') { flip.flipPrev(); e.preventDefault(); }
-    });
+    }
+    root.addEventListener('keydown', onKey);
 
     var total = flip.getPageCount();
     var pageEls = bookEl.querySelectorAll('.spread-page');
@@ -232,13 +250,19 @@
     }
     flip.on('flip', function (e) { update(e.data); });
     flip.on('changeOrientation', function () { update(flip.getCurrentPageIndex()); });
-    window.addEventListener('resize', function () { update(flip.getCurrentPageIndex()); });
-    update(0);
+    function onResize() { update(flip.getCurrentPageIndex()); }
+    window.addEventListener('resize', onResize);
+    update(start);
 
     return {
       flip: flip,
       setSurface: function (s) { setSurface(root, s); },
-      destroy: function () { flip.destroy(); root.innerHTML = ''; }
+      destroy: function () {
+        window.removeEventListener('resize', onResize);
+        root.removeEventListener('keydown', onKey);
+        flip.destroy();
+        root.innerHTML = '';
+      }
     };
   }
 

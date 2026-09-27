@@ -2,7 +2,15 @@
 
 Artwork as a book you can hold. A page-curl book you can drop into any section of a website.
 
-## Add images
+## Editor
+
+Open https://spread.irina.love/editor/ (or `editor/` locally). Drop in up to 30 images; each is resized in the browser to 2400px WebP at quality 90, plus a 1000px copy, and small web-ready originals are kept untouched. Portrait pieces get a page each and landscape pieces go across both pages. Change layouts, captions, order, cover, colours and surface; the preview updates as you go. Undo with the button or Cmd/Ctrl+Z.
+
+The draft lives in your browser (IndexedDB) until you publish. **Publish** (Chrome or Edge) asks for the `spread` folder and writes `book.json` plus the new image files straight into it, deleting files of images you removed. Other browsers download a zip to unzip into the folder instead. Then commit and push in GitHub Desktop.
+
+Nothing is uploaded anywhere: there is no server or database.
+
+## Add images from the command line
 
 1. Put originals in `source-images/` (jpg, png, webp, tif).
 2. Run `python3 tools/optimize.py`.
@@ -19,6 +27,7 @@ Artwork as a book you can hold. A page-curl book you can drop into any section o
 | `endpaper` | colour of the endpapers |
 | `back`     | `text` shown on the back cover |
 | `pages`    | the pages in order, see below |
+| `images`   | optional. `{ name: { src, small, width, height, smallWidth } }`, paths relative to book.json. Names not listed fall back to `images/<name>.webp` and `images/<name>-1000.webp` |
 
 Page layouts:
 

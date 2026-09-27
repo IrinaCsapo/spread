@@ -6,8 +6,9 @@ and run:
 
     python3 spread/tools/optimize.py
 
-Each image becomes two light WebP files in spread/images/:
-    name.webp        2000px on the long edge  (big screens, full-bleed spreads)
+Each image becomes two light WebP files in spread/images/ (the editor does the
+same in the browser; this script is for batches from the command line):
+    name.webp        2400px on the long edge  (big screens, full-bleed spreads)
     name-1000.webp   1000px on the long edge  (phones, thumbnails)
 
 Rotation from the camera is applied, metadata (GPS etc.) is stripped, and
@@ -24,8 +25,8 @@ from PIL import Image, ImageOps
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "source-images"
 OUT = ROOT / "images"
-SIZES = {"": 2000, "-1000": 1000}
-QUALITY = 80
+SIZES = {"": 2400, "-1000": 1000}
+QUALITY = 90  # matches the editor
 EXTS = {".jpg", ".jpeg", ".png", ".webp", ".heic", ".tif", ".tiff"}
 
 
@@ -60,7 +61,7 @@ def main() -> int:
     for p in sources:
         entry = convert(p)
         manifest[p.stem] = entry
-        big = entry["files"][2000]
+        big = entry["files"][2400]
         before += p.stat().st_size
         after += big["kb"] * 1024
         print(f"{p.name:28} {p.stat().st_size // 1024:6} KB -> {big['kb']:4} KB  "

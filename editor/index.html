@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spread editor</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../spread.css">
+  <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+  <header class="bar">
+    <a class="logo" href="../">spread<span>.irina.love</span></a>
+    <span class="bar-title">Editor</span>
+    <div class="bar-actions">
+      <button class="btn btn--quiet" id="undo" type="button" disabled>Undo</button>
+      <button class="btn btn--quiet" id="reset" type="button">Start over</button>
+      <button class="btn btn--quiet" id="zip" type="button">Download zip</button>
+      <button class="btn btn--primary" id="publish" type="button">Publish</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel" aria-label="Book contents">
+
+      <div class="block">
+        <div class="block-head">
+          <h2>Images</h2>
+          <span class="count" id="count">0 of 30</span>
+        </div>
+        <label class="drop" id="drop">
+          <input type="file" id="file" accept="image/*" multiple hidden>
+          <strong>Add images</strong>
+          <span>Drop them here or click to choose. Up to 30, resized for the web automatically.</span>
+        </label>
+        <p class="promise">
+          <strong>Your art stays yours.</strong>
+          We store your images only to show your book. We never use them for anything else, and never to train AI. That's a promise.
+          <span>Right now nothing is uploaded: images stay in this browser until you publish to your own site.</span>
+        </p>
+        <div class="progress" id="progress" hidden></div>
+        <ul class="tray" id="tray" aria-label="Images in this book"></ul>
+      </div>
+
+      <details class="block" id="cover-block">
+        <summary><h2>Cover, colours &amp; surface</h2></summary>
+        <div class="fields" id="cover-fields"></div>
+      </details>
+
+      <div class="block">
+        <div class="block-head">
+          <h2>Pages</h2>
+          <span class="hint">Click a page to turn to it</span>
+        </div>
+        <ol class="pages" id="pages"></ol>
+        <div class="add-row">
+          <button class="btn btn--small" type="button" data-add="text">+ Text page</button>
+          <button class="btn btn--small" type="button" data-add="endpaper">+ Blank page</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="preview-col" aria-label="Preview">
+      <div class="preview-sticky">
+        <div class="spread" id="preview"></div>
+        <p class="note" id="draft-note"></p>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="../vendor/page-flip.browser.js"></script>
+  <script src="../spread.js"></script>
+  <script src="editor.js"></script>
+</body>
+</html>
