@@ -42,7 +42,10 @@
         node.src = base + 'images/' + name + '.webp';
         node.srcset = base + 'images/' + name + '-1000.webp 1000w, ' + base + 'images/' + name + '.webp 2000w';
       }
-      node.sizes = '(max-width: 700px) 100vw, 1200px';
+      // Across both pages an image shows up to 1200px wide; on one page, up to 600px.
+      node.sizes = cls === 'spread-span' ? '(max-width: 700px) 200vw, 1200px' : '(max-width: 700px) 100vw, 600px';
+      // Pages load as the reader gets near them (see warm below), not all at once.
+      node.loading = 'lazy';
       node.alt = alt || '';
       node.draggable = false;
       return node;
@@ -231,7 +234,10 @@
     function warm(i) {
       for (var n = Math.max(0, i - 1); n < Math.min(pageEls.length, i + 5); n++) {
         pageEls[n].querySelectorAll('img').forEach(function (im) {
-          if (!im.dataset.warm && im.decode) { im.dataset.warm = '1'; im.decode().catch(function () {}); }
+          if (im.dataset.warm) return;
+          im.dataset.warm = '1';
+          im.loading = 'eager';
+          if (im.decode) im.decode().catch(function () {});
         });
       }
     }

@@ -7,10 +7,12 @@
   'use strict';
 
   var MAX_IMAGES = 30;
-  var BIG = { edge: 2400, quality: 0.9 };
-  var SMALL = { edge: 1000, quality: 0.85 };
-  // An original already this small (and web-friendly) is kept byte for byte: no re-encode, no loss.
-  var KEEP_ORIGINAL_BYTES = 1.2 * 1024 * 1024;
+  // A page is at most 600px wide on screen (1200px across a spread), so 1800px covers a Retina
+  // display for single pages and 2400px for pieces that run across both.
+  // Each file gets a size budget: quality steps down gently until it fits, never below the floor.
+  var BIG = { edge: 1800, wideEdge: 2400, quality: 0.84, floor: 0.66, budget: 450 * 1024 };
+  var SMALL = { edge: 1000, quality: 0.8, floor: 0.62, budget: 140 * 1024 };
+  var WIDE = 1.15;
   var BASE = '../';
 
   var LAYOUTS = [
@@ -247,28 +249,33 @@
     return cur;
   }
 
-  function encode(canvas, quality) {
-    return new Promise(function (resolve) {
-      canvas.toBlob(function (b) {
-        if (b && b.type === 'image/webp') return resolve(b);
-        // Browsers that cannot write WebP (older Safari) get a high-quality JPEG instead.
-        canvas.toBlob(resolve, 'image/jpeg', Math.min(0.95, quality + 0.03));
-      }, 'image/webp', quality);
+  function encodeAt(canvas, type, quality) {
+    return new Promise(function (resolve) { canvas.toBlob(resolve, type, quality); });
+  }
+  // WebP where the browser can write it (older Safari falls back to JPEG), stepping quality
+  // down until the file fits its budget.
+  function encode(canvas, spec) {
+    return encodeAt(canvas, 'image/webp', spec.quality).then(function (first) {
+      var type = first && first.type === 'image/webp' ? 'image/webp' : 'image/jpeg';
+      var q = spec.quality;
+      function fit(blob) {
+        if (blob && blob.size <= spec.budget) return blob;
+        if (q - 0.06 < spec.floor) return blob;
+        q = Math.round((q - 0.06) * 100) / 100;
+        return encodeAt(canvas, type, q).then(fit);
+      }
+      return type === 'image/webp' ? fit(first) : encodeAt(canvas, type, q).then(fit);
     });
   }
   function extOf(type) { return { 'image/webp': 'webp', 'image/jpeg': 'jpg', 'image/png': 'png' }[type] || 'webp'; }
+  function mb(bytes) { return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.round(bytes / 1024) + ' KB'; }
 
   function processFile(file) {
     return decode(file).then(function (src) {
       var d = dims(src);
-      var bigCanvas = resize(src, BIG.edge);
+      var bigCanvas = resize(src, d.w / d.h > WIDE ? BIG.wideEdge : BIG.edge);
       var smallCanvas = resize(src, SMALL.edge);
-      var keep = Math.max(d.w, d.h) <= BIG.edge && file.size <= KEEP_ORIGINAL_BYTES &&
-        /^image\/(jpeg|webp)$/.test(file.type);
-      return Promise.all([
-        keep ? Promise.resolve(file) : encode(bigCanvas, BIG.quality),
-        encode(smallCanvas, SMALL.quality)
-      ]).then(function (out) {
+      return Promise.all([encode(bigCanvas, BIG), encode(smallCanvas, SMALL)]).then(function (out) {
         if (src.close) src.close();
         return {
           big: out[0], small: out[1],
@@ -277,6 +284,32 @@
         };
       });
     });
+  }
+
+  // Store a processed image as this browser's copy of `name`, replacing any earlier files.
+  function storeImage(name, r, extra) {
+    var bigFile = name + '.' + extOf(r.big.type);
+    var smallFile = name + '-1000.' + extOf(r.small.type);
+    blobs[bigFile] = r.big;
+    blobs[smallFile] = r.small;
+    delete urls[bigFile];
+    delete urls[smallFile];
+    return Promise.all([put('files', bigFile, r.big), put('files', smallFile, r.small)]).then(function () {
+      var entry = {
+        src: 'images/' + bigFile, small: 'images/' + smallFile,
+        width: r.width, height: r.height, smallWidth: r.smallWidth,
+        bytes: r.big.size, local: true
+      };
+      Object.keys(extra || {}).forEach(function (k) { entry[k] = extra[k]; });
+      return entry;
+    });
+  }
+
+  function showResizeNote(count, before, after) {
+    var note = $('resize-note');
+    note.hidden = false;
+    note.textContent = 'Resized ' + count + (count === 1 ? ' image' : ' images') + ' for the web: ' +
+      mb(before) + ' → ' + mb(after) + '.';
   }
 
   function addFiles(list) {
@@ -289,26 +322,17 @@
 
     var progress = $('progress');
     progress.hidden = false;
-    var made = [], failed = [];
+    var made = [], failed = [], before = 0, after = 0;
 
     files.reduce(function (chain, file, i) {
       return chain.then(function () {
         progress.textContent = 'Resizing ' + (i + 1) + ' of ' + files.length + ': ' + file.name;
         return processFile(file).then(function (r) {
           var name = uniqueName(slug(file.name));
-          var bigFile = name + '.' + extOf(r.big.type);
-          var smallFile = name + '-1000.' + extOf(r.small.type);
-          blobs[bigFile] = r.big;
-          blobs[smallFile] = r.small;
-          return Promise.all([put('files', bigFile, r.big), put('files', smallFile, r.small)]).then(function () {
-            made.push({
-              name: name,
-              entry: {
-                src: 'images/' + bigFile, small: 'images/' + smallFile,
-                width: r.width, height: r.height, smallWidth: r.smallWidth, local: true
-              },
-              kb: Math.round(r.big.size / 1024)
-            });
+          return storeImage(name, r).then(function (entry) {
+            before += file.size;
+            after += r.big.size;
+            made.push({ name: name, entry: entry });
           });
         }).catch(function () { failed.push(file.name); });
       });
@@ -320,12 +344,90 @@
           placeNew(made);
           if (!book.cover.image) book.cover.image = made[0].name;
         });
+        showResizeNote(made.length, before, after);
       }
-      var msg = made.length ? 'Added ' + made.length + (made.length === 1 ? ' image' : ' images') +
-        ' (' + made.map(function (m) { return m.kb + 'KB'; }).join(', ') + ').' : '';
+      var msg = made.length ? 'Added and resized ' + made.length + (made.length === 1 ? ' image' : ' images') +
+        ': ' + mb(before) + ' → ' + mb(after) + '.' : '';
       if (skipped > 0) msg += ' ' + skipped + ' not added: the limit is 30.';
       if (failed.length) msg += ' Could not read ' + failed.join(', ') + '. Try exporting it as JPEG.';
-      toast(msg.trim(), 7000);
+      toast(msg.trim(), 8000);
+    });
+  }
+
+  /* ---------- Lighten images already in the book ---------- */
+
+  var published = {};   // image name -> bytes of its published large file
+
+  // Ask the site how big each published image is (a HEAD request moves no image data).
+  function measurePublished() {
+    return Promise.all(imageNames().map(function (n) {
+      var e = book.images[n];
+      if (e.local) return null;
+      return fetch(BASE + e.src, { method: 'HEAD', cache: 'no-store' }).then(function (r) {
+        var len = Number(r.headers.get('Content-Length'));
+        if (r.ok && len) published[n] = len;
+      }).catch(function () {});
+    })).then(function () { renderTray(); renderLighten(); });
+  }
+
+  function sizeOf(name) {
+    var e = book.images[name];
+    return e.local ? (e.bytes || (blobs[fileOf(e.src)] || {}).size || 0) : published[name] || e.bytes || 0;
+  }
+
+  function heavyImages() {
+    return imageNames().filter(function (n) { return sizeOf(n) > BIG.budget * 1.1; });
+  }
+
+  function renderLighten() {
+    var box = $('lighten');
+    var heavy = heavyImages();
+    if (!heavy.length) { box.hidden = true; return; }
+    var total = heavy.reduce(function (t, n) { return t + sizeOf(n); }, 0);
+    box.hidden = false;
+    $('lighten-text').textContent = heavy.length + (heavy.length === 1 ? ' image is' : ' images are') +
+      ' heavier than the book needs (' + mb(total) + ' together), so the book loads slowly.';
+  }
+
+  function lighten() {
+    var heavy = heavyImages();
+    if (!heavy.length) return;
+    var btn = $('lighten-btn');
+    btn.disabled = true;
+    var progress = $('progress');
+    progress.hidden = false;
+    var done = [], before = 0, after = 0;
+    heavy.reduce(function (chain, name, i) {
+      return chain.then(function () {
+        progress.textContent = 'Making lighter ' + (i + 1) + ' of ' + heavy.length + ': ' + name;
+        var e = book.images[name];
+        var src = e.local && blobs[fileOf(e.src)] ? Promise.resolve(blobs[fileOf(e.src)])
+          : fetch(BASE + e.src, { cache: 'no-store' }).then(function (r) { return r.blob(); });
+        return src.then(function (blob) {
+          before += sizeOf(name);
+          return processFile(blob);
+        }).then(function (r) {
+          return storeImage(name, r).then(function (entry) {
+            after += r.big.size;
+            done.push({ name: name, entry: entry, old: [e.src, e.small] });
+          });
+        }).catch(function () {});
+      });
+    }, Promise.resolve()).then(function () {
+      progress.hidden = true;
+      btn.disabled = false;
+      if (!done.length) { toast('Could not make those images lighter. Try again.'); return; }
+      commit(function () {
+        done.forEach(function (d) {
+          book.images[d.name] = Object.assign({}, book.images[d.name], d.entry, { saved: false });
+          // A published file whose name changed (say .jpg to .webp) is deleted on Save.
+          d.old.forEach(function (p) { if (p && p !== d.entry.src && p !== d.entry.small) removed.push(p); });
+          delete published[d.name];
+        });
+      });
+      showResizeNote(done.length, before, after);
+      toast('Made ' + done.length + (done.length === 1 ? ' image' : ' images') + ' lighter: ' + mb(before) + ' → ' + mb(after) +
+        '. Press Save to put them online.', 10000);
     });
   }
 
@@ -445,7 +547,8 @@
           type: 'button', class: 'thumb-x', 'aria-label': 'Remove ' + name,
           onclick: function () { removeImage(name); }
         }, ['×']),
-        e.local ? h('span', { class: 'thumb-tag', text: 'new' }) : null
+        e.local && !e.saved ? h('span', { class: 'thumb-tag', text: 'new' }) : null,
+        sizeOf(name) ? h('span', { class: 'thumb-size' + (sizeOf(name) > BIG.budget * 1.1 ? ' is-heavy' : ''), text: mb(sizeOf(name)) }) : null
       ]));
     });
   }
@@ -570,6 +673,7 @@
   function render() {
     $('undo').disabled = !history.length;
     renderTray();
+    renderLighten();
     renderCover();
     renderPages();
     renderPreview();
@@ -584,7 +688,7 @@
     });
     Object.keys(book).forEach(function (k) { if (!(k in out)) out[k] = book[k]; });
     out = JSON.parse(JSON.stringify(out));
-    Object.keys(out.images).forEach(function (n) { delete out.images[n].local; delete out.images[n].saved; });
+    Object.keys(out.images).forEach(function (n) { delete out.images[n].local; delete out.images[n].saved; delete out.images[n].bytes; });
     out.pages.concat(out.cover).forEach(function (p) { delete p.ai; });
     return JSON.stringify(out, null, 2) + '\n';
   }
@@ -1080,6 +1184,7 @@
   /* ---------- wiring ---------- */
 
   $('arrange').addEventListener('click', arrange);
+  $('lighten-btn').addEventListener('click', lighten);
   $('ai-settings').addEventListener('click', function () { askSettings(); });
   $('mode').addEventListener('click', function () { setMode(document.body.classList.contains('is-simple')); });
   try { setMode(localStorage.getItem('spread-mode') === 'edit'); } catch (e) { setMode(false); }
@@ -1116,7 +1221,7 @@
     });
   });
 
-  loadDraft().then(function (had) { return had ? null : loadLive(); }).then(render).catch(function (err) {
+  loadDraft().then(function (had) { return had ? null : loadLive(); }).then(render).then(measurePublished).catch(function (err) {
     console.error(err);
     toast('Could not load the book.', 8000);
   });

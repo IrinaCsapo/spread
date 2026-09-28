@@ -36,8 +36,14 @@
         <label class="drop" id="drop">
           <input type="file" id="file" accept="image/*" multiple hidden>
           <strong>Add images</strong>
-          <span>Drop them here or click to choose. Up to 30, resized for the web automatically.</span>
+          <span>Drop them here or click to choose. Up to 30.</span>
         </label>
+        <p class="resize-info">Every image is resized for the web as you add it: 1800px tall (2400px wide for pieces across both pages), usually 200 to 450 KB, plus a smaller copy for phones. Your originals are never changed.</p>
+        <p class="resize-note" id="resize-note" role="status" hidden></p>
+        <div class="lighten" id="lighten" hidden>
+          <p id="lighten-text"></p>
+          <button class="btn btn--small" id="lighten-btn" type="button">Make them lighter</button>
+        </div>
         <p class="promise">
           <strong>Your art stays yours.</strong>
           We store your images only to show your book. We never use them for anything else, and never to train AI. That's a promise.
