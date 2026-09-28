@@ -47,7 +47,7 @@
       "caption": "Plate V",
       "note": "Collage with processors and RAM",
       "alt": "Collage of a woman's neck and emerald necklace, a gold panther bangle and RAM sticks over torn purple, red and blue paper",
-      "body": "Mixed media collage with vintage print and electronic PC components, A3, 2025.\n\nThree dancers from the 1920s take the stage on sticks of salvaged RAM, with processor chips scattered around them like footlights. A holographic CD becomes a halo, a gramophone horn opens into deep space, and a black cat strolls across the memory board as if it owns the place. The sheet music at the top reads \"Avec une tranquille bonne humeur\", with calm good humour, and that's the mood of the whole piece: old machines and old glamour, rescued and set dancing again. Exhibited at the Bucharest Collage Festival, 2025.",
+      "body": "Mixed media collage with vintage print and electronic PC components, A3, 2025.\n\nThree 1920s dancers take the stage on salvaged RAM, with processor chips around them like footlights. A holographic CD becomes a halo, a gramophone horn opens into space, and a black cat strolls across the memory board like it owns the place. The sheet music reads \"Avec une tranquille bonne humeur\", with calm good humour: old machines and old glamour, set dancing again. Exhibited at the Bucharest Collage Festival, 2025.",
       "heading": "Kilobyte Cabaret",
       "eyebrow": "2025"
     },
@@ -55,7 +55,7 @@
       "layout": "text",
       "image": "red-lips-bust",
       "alt": "Collage of a silver bust on a red circle over blue paper, with a red television, lips and a remote control",
-      "body": "Mixed media collage with vintage print, mirror and electronic old media components\nA3, 29.7 × 42 cm. \n\nA silver classical bust stands in front of a red sun, surrounded by the machines that once decided what we saw: a television full of static, a salvaged remote control and Philips tuner, a camcorder and a CD. A real mirror hangs in the corner, so for a moment the viewer ends up in the picture too. Fifties fashion models pose at the edges like they're waiting for their cue, glossy red lips speak into a microphone, and op-art stripes pull the whole scene into a slow spin. It's a piece about broadcast glamour and the old dream of being seen, made from the hardware that did the seeing and now sits quietly unplugged.",
+      "body": "Mixed media collage with vintage print, mirror and electronic old media components - A3.\n\nA silver bust stands before a red sun, surrounded by the machines that once decided what we saw: a static-filled television, a salvaged remote, a Philips tuner, camcorder and CD. A real mirror hangs in the corner, putting the viewer in the picture. Fifties models wait for their cue as glossy red lips speak into a microphone. It's about the old dream of being seen, made from hardware now unplugged.",
       "heading": "Silver Screen Queen",
       "eyebrow": "2026"
     },
@@ -71,7 +71,7 @@
       "layout": "text",
       "image": "panther-ram",
       "heading": "Electric Eve",
-      "body": "Mixed media collage with glossy fashion print and electronic PC components\nA3, 29.7 × 42 cm. \n\nA fashion portrait with its face taken away, replaced by a patchwork of painted colour and a holographic shimmer where the eyes should be. She still wears her jewels: a gemstone necklace at the throat and a gold panther bangle curling around her head like a crown. Salvaged memory modules and a processor sit among torn magazine strips, foil circles and bright geometric shapes. It's a portrait of how identity gets built from what we buy, wear and plug in, glamorous on the surface and unreadable underneath.",
+      "body": "Mixed media collage with glossy fashion print and electronic PC components - A3.\n\nA fashion portrait with its face taken away, replaced by painted colour and a holographic shimmer where the eyes should be. She still wears her jewels: a gemstone necklace and a gold panther bangle curling round her head like a crown. Salvaged memory modules and a processor sit among torn magazine strips and foil. It's about identity built from what we buy, wear and plug in, glamorous on top, unreadable underneath.",
       "eyebrow": "2025"
     },
     {
@@ -82,15 +82,15 @@
       "layout": "text",
       "image": "irina-csapo-the-double-analogue-mixed-me",
       "heading": "Electric Muse",
-      "body": "Mixed media collage with vintage print and electronic PC components\nA3, 29.7 × 42 cm. \n\nA 1920s muse with a cigarette holder and pearls sits beside a real Raspberry Pi, the tiny computer that taught a generation to tinker. A red wire runs from the board across the page to a small salvaged circuit, as if she's plugged in and powering the whole scene. Above her, \"INNOVATE\" and \"ART\" burst out in blue foil and holographic rays, surrounded by red lips, a lipstick, a retro computer and a grid of watching eyes. It's a love letter to making things, where glamour and circuitry both chase the same spark.\n\nQuick check: some of your saved files call this piece \"Innovate Art\" rather than \"Electric Muse\". It's worth picking one title so the catalogue and your file names match.",
+      "body": "Mixed media collage with vintage print and electronic PC components - A3.\n\nA 1920s muse with a cigarette holder and pearls sits beside a real Raspberry Pi, the tiny computer that taught a generation to tinker. A red wire runs from the board to a salvaged circuit, as if she's powering the whole scene. Above her, \"INNOVATE\" and \"ART\" burst out in blue foil and holographic rays. It's a love letter to making things, where glamour and circuitry chase the same spark.",
       "eyebrow": "2025"
     },
     {
       "layout": "text",
-      "body": "Mixed media collage with glossy fashion magazine offcuts and electronic PC components\nA3, 29.7 × 42 cm. Framed: 42 × 52 cm\nDecember 2025\n\nOne face made from many. A painted eye in violet shadow sits beside a black and white one, a monochrome mouth meets glossy red lips, and a jewelled choker holds it all together at the throat. ",
+      "body": "Mixed media collage with glossy fashion magazine offcuts and electronic PC components\nA3, 29.7 × 42 cm.\n\nOne face made from many. A painted eye in violet shadow sits beside a black and white one, a monochrome mouth meets glossy red lips, and a jewelled choker holds it all together at the throat. ",
       "image": "doppel-effect",
       "heading": "Fragmentation",
-      "eyebrow": "2026"
+      "eyebrow": "2025"
     },
     {
       "layout": "spread",
@@ -136,6 +136,15 @@
       "eyebrow": "2025",
       "heading": "Moonlight Blossoms",
       "body": "Analogue collage on paper.\n\nA full moon rises over a black and white river landscape under a golden sunset sky. In front of a bright blue panel, a fifties model in a yellow suit strikes a pose, a white flower blooming from her hat. Behind her, a woman in an evening gown lifts a giant pink flower as if it were a lantern. A star-shaped window lets a single eye peek through. Here, fashion wanders into the landscape and everything blossoms under the moon."
+    },
+    {
+      "layout": "bleed",
+      "image": "irinacsapo-kilobytecabaret-irinacsapoart"
+    },
+    {
+      "layout": "text",
+      "body": "instagram.com/irina_csapo_art",
+      "heading": "More about my process"
     },
     {
       "layout": "endpaper"
@@ -258,5 +267,5 @@
       "smallWidth": 750
     }
   },
-  "updated": "2026-09-28T00:03:15.618Z"
+  "updated": "2026-09-28T01:43:01.686Z"
 }
