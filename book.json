@@ -1,58 +1,262 @@
 {
   "title": "Irina Csapo, Selected Works",
-  "page": { "width": 600, "height": 800 },
-  "surface": "studio",
-
+  "page": {
+    "width": 600,
+    "height": 800
+  },
+  "surface": "blush",
   "cover": {
     "color": "#1b3fd0",
     "ink": "#ffffff",
     "eyebrow": "Irina Csapo",
     "title": "Selected Works",
-    "subtitle": "Collage, mixed media & digital",
+    "subtitle": "Collage, mixed media & digital interactive art",
     "image": "red-lips-bust",
     "alt": "Collage of a silver bust on a red circle over blue paper, with a red television, lips and a remote control"
   },
   "endpaper": "#e8331f",
-
-  "pages": [
-    { "layout": "endpaper" },
-    {
-      "layout": "text",
-      "eyebrow": "Plates I–VI",
-      "heading": "Selected Works",
-      "body": "Paper, foil, circuit boards and the occasional machine dream. Drag a page corner, swipe, or use the arrow keys to turn."
-    },
-
-    { "layout": "plate", "image": "glass-pour", "caption": "Plate I", "note": "Digital",
-      "alt": "Iridescent glass pouring a stream of tiny pastel flowers into a second glass" },
-    { "layout": "bleed", "image": "doppel-effect",
-      "alt": "Framed collage in a red frame: a pixelated face on a phone screen, circuit boards, RAM sticks, red lips and a drawn eye" },
-
-    { "layout": "spread", "image": "glass-head",
-      "alt": "Transparent glass head in profile filled with pink flowers and blue petals" },
-
-    { "layout": "plate", "image": "dancers-cpu", "caption": "Plate IV", "note": "Collage with processors and RAM",
-      "alt": "Collage of 1920s dancers posed on RAM sticks and processors over sheet music, blue paper and coloured circles" },
-    { "layout": "plate", "image": "panther-ram", "caption": "Plate V", "note": "Collage with processors and RAM",
-      "alt": "Collage of a woman's neck and emerald necklace, a gold panther bangle and RAM sticks over torn purple, red and blue paper" },
-
-    { "layout": "bleed", "image": "red-lips-bust",
-      "alt": "Collage of a silver bust on a red circle over blue paper, with a red television, lips and a remote control" },
-    {
-      "layout": "half",
-      "image": "artist-garden",
-      "focus": "60% 30%",
-      "alt": "Irina in a red dress holding a cardboard pinhole viewer in a sunlit garden",
-      "eyebrow": "The artist",
-      "heading": "Irina Csapo",
-      "body": "Collage and mixed-media artist and product designer. Found paper, salvaged hardware and a lot of glue."
-    },
-
-    { "layout": "colophon", "body": "Made with Spread" },
-    { "layout": "endpaper" }
-  ],
-
   "back": {
     "text": "spread.irina.love"
-  }
+  },
+  "pages": [
+    {
+      "layout": "endpaper",
+      "eyebrow": "Plates I–VI",
+      "heading": "Selected Works",
+      "body": "Irina Csapo is a UK-based multidisciplinary artist and designer working primarily with analogue\ncollage and mixed media. Her practice explores the aesthetics and afterlives of digital culture\nthrough hand-built compositions made from vintage printed materials and e-waste ephemera such\nas discarded electronic components, including circuit boards, memory modules, and obsolete\ncomputer and media hardware."
+    },
+    {
+      "layout": "text",
+      "image": "doppel-effect",
+      "alt": "",
+      "body": "Irina Csapo is a UK-based multidisciplinary artist and designer working primarily with analogue\ncollage and mixed media. Her practice explores the aesthetics and afterlives of digital culture\nthrough hand-built compositions made from vintage printed materials and e-waste ephemera such\nas discarded electronic components, including circuit boards, memory modules, and obsolete\ncomputer and media hardware.",
+      "heading": "Selected Works",
+      "eyebrow": "2025-2026"
+    },
+    {
+      "layout": "bleed",
+      "image": "dancers-cpu",
+      "caption": "Plate IV",
+      "note": "Collage with processors and RAM",
+      "alt": "Collage of 1920s dancers posed on RAM sticks and processors over sheet music, blue paper and coloured circles",
+      "focus": "50% 80%"
+    },
+    {
+      "layout": "text",
+      "image": "panther-ram",
+      "caption": "Plate V",
+      "note": "Collage with processors and RAM",
+      "alt": "Collage of a woman's neck and emerald necklace, a gold panther bangle and RAM sticks over torn purple, red and blue paper",
+      "body": "Mixed media collage with vintage print and electronic PC components, A3, 2025.\n\nThree dancers from the 1920s take the stage on sticks of salvaged RAM, with processor chips scattered around them like footlights. A holographic CD becomes a halo, a gramophone horn opens into deep space, and a black cat strolls across the memory board as if it owns the place. The sheet music at the top reads \"Avec une tranquille bonne humeur\", with calm good humour, and that's the mood of the whole piece: old machines and old glamour, rescued and set dancing again. Exhibited at the Bucharest Collage Festival, 2025.",
+      "heading": "Kilobyte Cabaret",
+      "eyebrow": "2025"
+    },
+    {
+      "layout": "text",
+      "image": "red-lips-bust",
+      "alt": "Collage of a silver bust on a red circle over blue paper, with a red television, lips and a remote control",
+      "body": "Mixed media collage with vintage print, mirror and electronic old media components\nA3, 29.7 × 42 cm. \n\nA silver classical bust stands in front of a red sun, surrounded by the machines that once decided what we saw: a television full of static, a salvaged remote control and Philips tuner, a camcorder and a CD. A real mirror hangs in the corner, so for a moment the viewer ends up in the picture too. Fifties fashion models pose at the edges like they're waiting for their cue, glossy red lips speak into a microphone, and op-art stripes pull the whole scene into a slow spin. It's a piece about broadcast glamour and the old dream of being seen, made from the hardware that did the seeing and now sits quietly unplugged.",
+      "heading": "Silver Screen Queen",
+      "eyebrow": "2026"
+    },
+    {
+      "layout": "bleed",
+      "image": "irina-csapo-silver-screen-queen-a3-analo"
+    },
+    {
+      "layout": "bleed",
+      "image": "panther-ram"
+    },
+    {
+      "layout": "text",
+      "image": "panther-ram",
+      "heading": "Electric Eve",
+      "body": "Mixed media collage with glossy fashion print and electronic PC components\nA3, 29.7 × 42 cm. \n\nA fashion portrait with its face taken away, replaced by a patchwork of painted colour and a holographic shimmer where the eyes should be. She still wears her jewels: a gemstone necklace at the throat and a gold panther bangle curling around her head like a crown. Salvaged memory modules and a processor sit among torn magazine strips, foil circles and bright geometric shapes. It's a portrait of how identity gets built from what we buy, wear and plug in, glamorous on the surface and unreadable underneath.",
+      "eyebrow": "2025"
+    },
+    {
+      "layout": "bleed",
+      "image": "irina-csapo-motherboard-muse-analogue-mi"
+    },
+    {
+      "layout": "text",
+      "image": "irina-csapo-the-double-analogue-mixed-me",
+      "heading": "Electric Muse",
+      "body": "Mixed media collage with vintage print and electronic PC components\nA3, 29.7 × 42 cm. \n\nA 1920s muse with a cigarette holder and pearls sits beside a real Raspberry Pi, the tiny computer that taught a generation to tinker. A red wire runs from the board across the page to a small salvaged circuit, as if she's plugged in and powering the whole scene. Above her, \"INNOVATE\" and \"ART\" burst out in blue foil and holographic rays, surrounded by red lips, a lipstick, a retro computer and a grid of watching eyes. It's a love letter to making things, where glamour and circuitry both chase the same spark.\n\nQuick check: some of your saved files call this piece \"Innovate Art\" rather than \"Electric Muse\". It's worth picking one title so the catalogue and your file names match.",
+      "eyebrow": "2025"
+    },
+    {
+      "layout": "text",
+      "body": "Mixed media collage with glossy fashion magazine offcuts and electronic PC components\nA3, 29.7 × 42 cm. Framed: 42 × 52 cm\nDecember 2025\n\nOne face made from many. A painted eye in violet shadow sits beside a black and white one, a monochrome mouth meets glossy red lips, and a jewelled choker holds it all together at the throat. ",
+      "image": "doppel-effect",
+      "heading": "Fragmentation",
+      "eyebrow": "2026"
+    },
+    {
+      "layout": "spread",
+      "image": "irina-csapo-fragmentation-a3-analogue-mi"
+    },
+    {
+      "layout": "text",
+      "heading": "Fragmentation",
+      "body": "A real graphics card, the part that turns data into pictures, crowns the head, and a thin wire runs from it through the face down to a salvaged memory stick below. Shards of magenta, blue foil and holographic paper cut through like a glitch. It's a portrait of the self we piece together across screens, rendered one fragment at a time.",
+      "eyebrow": "2026"
+    },
+    {
+      "layout": "bleed",
+      "image": "irina-csapo-the-double-analogue-mixed-me"
+    },
+    {
+      "layout": "text",
+      "heading": "The Double",
+      "body": "The Doppel Effect / The Double places a living screen at the centre of a collage built from dead machines. A camera hidden in the surface watches whoever stops in front of the work, redrawing their face in six hard colours, a coarse pixel portrait made in real time. When the room empties, the screen keeps rippling on its own. The portrait is not of the artist, but of you.",
+      "eyebrow": "2026"
+    },
+    {
+      "layout": "text",
+      "eyebrow": "2025",
+      "heading": "The Oracle",
+      "body": "A single blue eye, its iris full of stars, looks out through layers of torn magazine pages. A gold bangle coils like a snake around a figure in red, whose striped arm reaches down through a line of vintage sheet music. Strips of purple, yellow and red stack like a signal breaking up, crossed by gold foil moons and a blue ribbon. Fashion, music and ornament are all torn apart and rebuilt into a collage that stares right back at you."
+    },
+    {
+      "layout": "spread",
+      "heading": "New page",
+      "image": "irina-csapo-the-oracle-teravarna-submiss"
+    },
+    {
+      "layout": "bleed",
+      "image": "irina-csapo-the-oracle-teravarna-submiss"
+    },
+    {
+      "layout": "bleed",
+      "image": "irina-csapo-moonlight-blossoms-teravarna"
+    },
+    {
+      "layout": "text",
+      "eyebrow": "2025",
+      "heading": "Moonlight Blossoms",
+      "body": "Analogue collage on paper.\n\nA full moon rises over a black and white river landscape under a golden sunset sky. In front of a bright blue panel, a fifties model in a yellow suit strikes a pose, a white flower blooming from her hat. Behind her, a woman in an evening gown lifts a giant pink flower as if it were a lantern. A star-shaped window lets a single eye peek through. Here, fashion wanders into the landscape and everything blossoms under the moon."
+    },
+    {
+      "layout": "endpaper"
+    },
+    {
+      "layout": "endpaper"
+    }
+  ],
+  "images": {
+    "doppel-effect": {
+      "src": "images/doppel-effect.webp",
+      "small": "images/doppel-effect-1000.webp",
+      "width": 1649,
+      "height": 2000,
+      "smallWidth": 825
+    },
+    "dancers-cpu": {
+      "src": "images/dancers-cpu.webp",
+      "small": "images/dancers-cpu-1000.webp",
+      "width": 1500,
+      "height": 2000,
+      "smallWidth": 750
+    },
+    "panther-ram": {
+      "src": "images/panther-ram.webp",
+      "small": "images/panther-ram-1000.webp",
+      "width": 1500,
+      "height": 2000,
+      "smallWidth": 750
+    },
+    "red-lips-bust": {
+      "src": "images/red-lips-bust.webp",
+      "small": "images/red-lips-bust-1000.webp",
+      "width": 1649,
+      "height": 2000,
+      "smallWidth": 825
+    },
+    "irina-csapo-electric-eve-a3-analogue-mix": {
+      "src": "images/irina-csapo-electric-eve-a3-analogue-mix.webp",
+      "small": "images/irina-csapo-electric-eve-a3-analogue-mix-1000.webp",
+      "width": 1800,
+      "height": 2400,
+      "smallWidth": 750
+    },
+    "irina-csapo-fragmentation-a3-analogue-mi": {
+      "src": "images/irina-csapo-fragmentation-a3-analogue-mi.webp",
+      "small": "images/irina-csapo-fragmentation-a3-analogue-mi-1000.webp",
+      "width": 1758,
+      "height": 2400,
+      "smallWidth": 733
+    },
+    "irina-csapo-motherboard-muse-a3-analogue": {
+      "src": "images/irina-csapo-motherboard-muse-a3-analogue.webp",
+      "small": "images/irina-csapo-motherboard-muse-a3-analogue-1000.webp",
+      "width": 1564,
+      "height": 2000,
+      "smallWidth": 782
+    },
+    "irina-csapo-silver-screen-queen-a3-analo": {
+      "src": "images/irina-csapo-silver-screen-queen-a3-analo.webp",
+      "small": "images/irina-csapo-silver-screen-queen-a3-analo-1000.webp",
+      "width": 1456,
+      "height": 2000,
+      "smallWidth": 728
+    },
+    "irina-csapo-kilobyte-cabaret-analogue-mi": {
+      "src": "images/irina-csapo-kilobyte-cabaret-analogue-mi.webp",
+      "small": "images/irina-csapo-kilobyte-cabaret-analogue-mi-1000.webp",
+      "width": 1800,
+      "height": 2400,
+      "smallWidth": 750
+    },
+    "irina-csapo-motherboard-muse-analogue-mi": {
+      "src": "images/irina-csapo-motherboard-muse-analogue-mi.webp",
+      "small": "images/irina-csapo-motherboard-muse-analogue-mi-1000.webp",
+      "width": 1800,
+      "height": 2400,
+      "smallWidth": 750
+    },
+    "irina-csapo-the-double-analogue-mixed-me": {
+      "src": "images/irina-csapo-the-double-analogue-mixed-me.webp",
+      "small": "images/irina-csapo-the-double-analogue-mixed-me-1000.webp",
+      "width": 1979,
+      "height": 2400,
+      "smallWidth": 824
+    },
+    "irina-csapo-the-oracle-teravarna-submiss": {
+      "src": "images/irina-csapo-the-oracle-teravarna-submiss.webp",
+      "small": "images/irina-csapo-the-oracle-teravarna-submiss-1000.webp",
+      "width": 1639,
+      "height": 2400,
+      "smallWidth": 683
+    },
+    "irina-csapo-moonlight-blossoms-teravarna": {
+      "src": "images/irina-csapo-moonlight-blossoms-teravarna.webp",
+      "small": "images/irina-csapo-moonlight-blossoms-teravarna-1000.webp",
+      "width": 1695,
+      "height": 2400,
+      "smallWidth": 706
+    },
+    "irinacsapo-kilobytecabaret-irinacsapoart": {
+      "src": "images/irinacsapo-kilobytecabaret-irinacsapoart.webp",
+      "small": "images/irinacsapo-kilobytecabaret-irinacsapoart-1000.webp",
+      "width": 1799,
+      "height": 2400,
+      "smallWidth": 750
+    },
+    "irina-csapo-kilobyte-cabaret-a3-analogue": {
+      "src": "images/irina-csapo-kilobyte-cabaret-a3-analogue.webp",
+      "small": "images/irina-csapo-kilobyte-cabaret-a3-analogue-1000.webp",
+      "width": 1701,
+      "height": 2400,
+      "smallWidth": 709
+    },
+    "irina-csapo-electric-eve-a3-analogue-mix-2": {
+      "src": "images/irina-csapo-electric-eve-a3-analogue-mix-2.jpg",
+      "small": "images/irina-csapo-electric-eve-a3-analogue-mix-2-1000.webp",
+      "width": 1500,
+      "height": 2000,
+      "smallWidth": 750
+    }
+  },
+  "updated": "2026-09-28T00:03:15.618Z"
 }
