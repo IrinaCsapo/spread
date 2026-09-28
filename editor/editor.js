@@ -13,7 +13,11 @@
   var BIG = { edge: 1800, wideEdge: 2400, quality: 0.84, floor: 0.66, budget: 450 * 1024 };
   var SMALL = { edge: 1000, quality: 0.8, floor: 0.62, budget: 140 * 1024 };
   var WIDE = 1.15;
-  var BASE = '../';
+  // ?book=<slug> edits that book; without it the editor shows the list of books.
+  var SLUG = new URLSearchParams(location.search).get('book') || '';
+  var BASE = '../' + (SLUG ? SLUG + '/' : '');
+  var SITE = new URL('../', location.href).href;
+  var RESERVED = ['editor', 'template', 'vendor', 'tools', 'ai-worker', 'images', 'source-images', 'books', 'index', 'page', 'spread', 'favicon', 'assets'];
 
   var LAYOUTS = [
     ['plate', 'One piece, with margin'],
@@ -70,7 +74,39 @@
   }
   var put = function (store, key, val) { return idb(store, 'readwrite', function (s) { return s.put(val, key); }); };
   var get = function (store, key) { return idb(store, 'readonly', function (s) { return s.get(key); }); };
-  var clear = function (store) { return idb(store, 'readwrite', function (s) { return s.clear(); }); };
+  var del = function (store, key) { return idb(store, 'readwrite', function (s) { return s.delete(key); }); };
+  var keys = function (store) { return idb(store, 'readonly', function (s) { return s.getAllKeys(); }).then(function (k) { return k || []; }); };
+  // Remove every key in a store that starts with prefix (one book's files).
+  function delPrefix(store, prefix) {
+    return keys(store).then(function (all) {
+      return Promise.all(all.filter(function (k) { return String(k).indexOf(prefix) === 0; }).map(function (k) { return del(store, k); }));
+    });
+  }
+
+  // Each book keeps its own draft and image files.
+  function draftKey(slug) { return 'draft:' + (slug || SLUG); }
+  function fileKey(f, slug) { return (slug || SLUG) + '/' + f; }
+
+  // Before books had folders, the one draft lived under 'draft' with bare file names.
+  // It belongs to the first book, Selected Works.
+  var LEGACY_SLUG = 'selected-works';
+  function migrateLegacy() {
+    return get('kv', 'draft').then(function (d) {
+      if (!d) return;
+      return get('kv', draftKey(LEGACY_SLUG)).then(function (existing) {
+        if (existing) return del('kv', 'draft');
+        return keys('files').then(function (all) {
+          var bare = all.filter(function (k) { return String(k).indexOf('/') === -1; });
+          return Promise.all(bare.map(function (k) {
+            return get('files', k).then(function (b) { return put('files', fileKey(k, LEGACY_SLUG), b); }).then(function () { return del('files', k); });
+          }));
+        }).then(function () {
+          d.dirty = true;  // old drafts did not record whether they had been saved
+          return put('kv', draftKey(LEGACY_SLUG), d);
+        }).then(function () { return del('kv', 'draft'); });
+      });
+    });
+  }
 
   /* ---------- state ---------- */
 
@@ -88,7 +124,7 @@
   var saveTimer;
   function save() {
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(function () { put('kv', 'draft', { book: book, removed: removed, at: Date.now() }); }, 250);
+    saveTimer = setTimeout(function () { put('kv', draftKey(), { book: book, removed: removed, at: Date.now(), dirty: true }); }, 250);
     $('draft-note').textContent = 'Draft saved in this browser. Publish when you are ready to put it online.';
   }
 
@@ -123,10 +159,16 @@
     if (!blobs[f]) return null;
     return urls[f] || (urls[f] = URL.createObjectURL(blobs[f]));
   }
+  // Where an image's published file lives. A duplicated book reads its images from the book it
+  // was copied from (copyOf holds repo paths) until the first Save copies them across.
+  function remoteUrl(e, key) {
+    var k = key === 'small' && !e.small ? 'src' : key;
+    return e.copyOf ? SITE + e.copyOf[k] : new URL(BASE + e[k], location.href).href;
+  }
   function thumbUrl(name) {
     var e = book.images[name];
     if (!e) return '';
-    return (e.local && localUrl(fileOf(e.small || e.src))) || BASE + (e.small || e.src);
+    return (e.local && localUrl(fileOf(e.small || e.src))) || remoteUrl(e, 'small');
   }
   function usedOn(name) {
     var out = [];
@@ -176,7 +218,10 @@
   }
 
   function loadLive() {
-    var bookReq = fetch(BASE + 'book.json', { cache: 'no-store' }).then(function (r) { return r.json(); });
+    var bookReq = fetch(BASE + 'book.json', { cache: 'no-store' }).then(function (r) {
+      if (!r.ok) throw new Error('This book is not online yet.');
+      return r.json();
+    });
     var manReq = fetch(BASE + 'images/manifest.json', { cache: 'no-store' })
       .then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
     return Promise.all([bookReq, manReq]).then(function (res) {
@@ -189,7 +234,7 @@
   }
 
   function loadDraft() {
-    return get('kv', 'draft').then(function (d) {
+    return get('kv', draftKey()).then(function (d) {
       if (!d || !d.book) return false;
       book = d.book;
       removed = d.removed || [];
@@ -199,7 +244,7 @@
         if (e.local) local.push(fileOf(e.src), fileOf(e.small));
       });
       return Promise.all(local.map(function (f) {
-        return get('files', f).then(function (b) { if (b) blobs[f] = b; });
+        return get('files', fileKey(f)).then(function (b) { if (b) blobs[f] = b; });
       })).then(function () {
         var when = new Date(d.at || Date.now());
         $('draft-note').textContent = 'Draft from ' + when.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) +
@@ -294,7 +339,7 @@
     blobs[smallFile] = r.small;
     delete urls[bigFile];
     delete urls[smallFile];
-    return Promise.all([put('files', bigFile, r.big), put('files', smallFile, r.small)]).then(function () {
+    return Promise.all([put('files', fileKey(bigFile), r.big), put('files', fileKey(smallFile), r.small)]).then(function () {
       var entry = {
         src: 'images/' + bigFile, small: 'images/' + smallFile,
         width: r.width, height: r.height, smallWidth: r.smallWidth,
@@ -363,7 +408,7 @@
     return Promise.all(imageNames().map(function (n) {
       var e = book.images[n];
       if (e.local) return null;
-      return fetch(BASE + e.src, { method: 'HEAD', cache: 'no-store' }).then(function (r) {
+      return fetch(remoteUrl(e, 'src'), { method: 'HEAD', cache: 'no-store' }).then(function (r) {
         var len = Number(r.headers.get('Content-Length'));
         if (r.ok && len) published[n] = len;
       }).catch(function () {});
@@ -402,7 +447,7 @@
         progress.textContent = 'Making lighter ' + (i + 1) + ' of ' + heavy.length + ': ' + name;
         var e = book.images[name];
         var src = e.local && blobs[fileOf(e.src)] ? Promise.resolve(blobs[fileOf(e.src)])
-          : fetch(BASE + e.src, { cache: 'no-store' }).then(function (r) { return r.blob(); });
+          : fetch(remoteUrl(e, 'src'), { cache: 'no-store' }).then(function (r) { return r.blob(); });
         return src.then(function (blob) {
           before += sizeOf(name);
           return processFile(blob);
@@ -512,6 +557,12 @@
     return h('label', { class: 'field' }, [h('span', {}, [label, tag, keep]), input]);
   }
 
+  function checkField(obj, key, label, dflt) {
+    var box = h('input', { type: 'checkbox', onchange: function () { commit(function () { obj[key] = box.checked; }); } });
+    box.checked = obj[key] === undefined ? dflt : !!obj[key];
+    return h('label', { class: 'field field--check' }, [box, h('span', { text: label })]);
+  }
+
   function selectField(label, options, value, onchange) {
     var sel = h('select', { class: 'input', onchange: function () { onchange(sel.value); } },
       options.map(function (o) { return h('option', { value: o[0], text: o[1] }); }));
@@ -572,7 +623,8 @@
         typeof book.surface === 'string' ? book.surface : 'studio',
         function (v) { commit(function () { book.surface = v; }); }),
       textField(book.back = book.back || {}, 'text', 'Back cover text'),
-      textField(book, 'title', 'Book name (read out by screen readers)')
+      textField(book, 'title', 'Book name (read out by screen readers)'),
+      checkField(book, 'listed', 'Show this book on my shelf', true)
     );
   }
 
@@ -641,6 +693,11 @@
     var cfg = JSON.parse(JSON.stringify(book));
     Object.keys(cfg.images).forEach(function (n) {
       var e = cfg.images[n];
+      if (e.copyOf && !e.local) {
+        e.src = remoteUrl(e, 'src');
+        e.small = remoteUrl(e, 'small');
+        return;
+      }
       if (!e.local) return;
       ['src', 'small'].forEach(function (key) {
         var u = localUrl(fileOf(e[key]));
@@ -688,7 +745,7 @@
     });
     Object.keys(book).forEach(function (k) { if (!(k in out)) out[k] = book[k]; });
     out = JSON.parse(JSON.stringify(out));
-    Object.keys(out.images).forEach(function (n) { delete out.images[n].local; delete out.images[n].saved; delete out.images[n].bytes; });
+    Object.keys(out.images).forEach(function (n) { ['local', 'saved', 'bytes', 'copyOf'].forEach(function (k) { delete out.images[n][k]; }); });
     out.pages.concat(out.cover).forEach(function (p) { delete p.ai; });
     return JSON.stringify(out, null, 2) + '\n';
   }
@@ -829,95 +886,172 @@
     return new TextDecoder().decode(Uint8Array.from(bin, function (ch) { return ch.charCodeAt(0); }));
   }
 
+  // One commit on top of main. build(tree) receives { path: sha } for every file in the repo
+  // and returns the tree entries to change.
+  function ghCommit(gh, message, build) {
+    var head, baseTree;
+    return ghApi(gh, 'GET', '/git/ref/heads/main').then(function (ref) {
+      head = ref.object.sha;
+      return ghApi(gh, 'GET', '/git/commits/' + head);
+    }).then(function (c) {
+      baseTree = c.tree.sha;
+      return ghApi(gh, 'GET', '/git/trees/' + baseTree + '?recursive=1');
+    }).then(function (tree) {
+      var existing = {};
+      tree.tree.forEach(function (t) { if (t.type === 'blob') existing[t.path] = t.sha; });
+      return build(existing);
+    }).then(function (entries) {
+      return ghApi(gh, 'POST', '/git/trees', { base_tree: baseTree, tree: entries });
+    }).then(function (tree) {
+      return ghApi(gh, 'POST', '/git/commits', { message: message, tree: tree.sha, parents: [head] });
+    }).then(function (c) {
+      return ghApi(gh, 'PATCH', '/git/refs/heads/main', { sha: c.sha });
+    });
+  }
+
+  function ghError(err, gh) {
+    if (err && err.status === 401) { try { localStorage.removeItem('spread-github'); } catch (e) {} }
+    return err && err.message === 'Failed to fetch' ? 'Could not reach GitHub. Check your connection and try again.'
+      : err && err.status === 401 ? 'GitHub did not accept the token. Paste a new one.'
+      : err && (err.status === 403 || err.status === 404) ? 'That token cannot write to ' + gh.repo + '. Check it has Contents: Read and write for that repo.'
+      : err && err.status === 422 ? 'The repo changed while saving. Try again.'
+      : 'Could not save: ' + ((err && err.message) || 'unknown error');
+  }
+
+  function withGh() {
+    var s = ghSettings();
+    return s.repo && s.token ? Promise.resolve(s) : askGh();
+  }
+
+  function readShelf(gh) {
+    return ghApi(gh, 'GET', '/contents/books.json?ref=main').then(function (f) {
+      return JSON.parse(b64ToText(f.content));
+    }).catch(function (err) {
+      if (err && err.status === 404) return { books: [] };
+      throw err;
+    });
+  }
+
+  function shelfEntry() {
+    var c = book.cover || {};
+    var img = book.images[c.image];
+    return {
+      slug: SLUG,
+      title: c.title || book.title || SLUG,
+      eyebrow: c.eyebrow || '',
+      color: c.color || '#1b3fd0',
+      ink: c.ink || '#ffffff',
+      cover: img ? SLUG + '/' + (img.small || img.src) : '',
+      pages: book.pages.length,
+      listed: book.listed !== false,
+      updated: book.updated
+    };
+  }
+
+  // GitHub Pages takes about a minute to publish. A brand-new book's page does not exist until
+  // then, so wait here and open the book once its new book.json is being served.
+  function waitUntilLive(stamp) {
+    var panel = $('publishing');
+    panel.hidden = false;
+    var started = Date.now();
+    var target = '../' + SLUG + '/?saved=' + encodeURIComponent(stamp);
+    $('publishing-open').href = target;
+    function poll() {
+      fetch(BASE + 'book.json?v=' + Date.now(), { cache: 'no-store' }).then(function (r) {
+        return r.ok ? r.json() : null;
+      }).then(function (cfg) {
+        if (cfg && cfg.updated && cfg.updated >= stamp) { location.href = target; return; }
+        later();
+      }).catch(later);
+    }
+    function later() {
+      if (Date.now() - started < 5 * 60 * 1000) setTimeout(poll, 4000);
+      else $('publishing-text').textContent = 'Saved. It is taking longer than usual to go live; open the book in a few minutes.';
+    }
+    poll();
+  }
+
   function saveOnline() {
     if (!titlesOk()) { setMode(true); return; }
-    var s = ghSettings();
-    (s.repo && s.token ? Promise.resolve(s) : askGh()).then(function (gh) {
+    withGh().then(function (gh) {
       if (!gh) return;
       var btn = $('publish');
       btn.disabled = true;
       btn.textContent = 'Saving…';
       var stamp = new Date().toISOString();
-      var site = new URL('../', location.href).href;
-      var head, baseTree, existing = {}, uploaded = [];
+      var site = SITE + SLUG + '/';
+      var uploaded = [];
+      var at = function (path) { return SLUG + '/' + path; };
 
-      ghApi(gh, 'GET', '/git/ref/heads/main').then(function (ref) {
-        head = ref.object.sha;
-        return ghApi(gh, 'GET', '/git/commits/' + head);
-      }).then(function (c) {
-        baseTree = c.tree.sha;
-        return ghApi(gh, 'GET', '/git/trees/' + baseTree + '?recursive=1');
-      }).then(function (tree) {
-        tree.tree.forEach(function (t) { existing[t.path] = true; });
-        // New image files, uploaded one at a time so a slow connection does not time out.
+      ghCommit(gh, 'Save "' + ((book.cover && book.cover.title) || SLUG) + '" from the Spread editor', function (existing) {
+        var entries = [];
+        // Images made in this browser, uploaded one at a time so a slow connection does not time out.
         var files = [];
         imageNames().forEach(function (n) {
           var e = book.images[n];
-          if (!e.local) return;
-          [e.src, e.small].forEach(function (path) {
-            var f = fileOf(path);
-            if (blobs[f] && !(e.saved && existing[path])) files.push({ path: path, blob: blobs[f], name: n });
-          });
+          if (e.local) {
+            [e.src, e.small].forEach(function (path) {
+              var f = fileOf(path);
+              if (blobs[f] && !(e.saved && existing[at(path)])) files.push({ path: path, blob: blobs[f], name: n });
+            });
+          } else if (e.copyOf) {
+            // Copied from another book: point the new path at the same stored file, no upload.
+            ['src', 'small'].forEach(function (k) {
+              var sha = e.copyOf[k] && existing[e.copyOf[k]];
+              if (sha && e[k]) entries.push({ path: at(e[k]), mode: '100644', type: 'blob', sha: sha });
+            });
+          }
         });
-        var entries = [];
         return files.reduce(function (chain, f, i) {
           return chain.then(function () {
             btn.textContent = 'Saving ' + (i + 1) + '/' + files.length + '…';
             return toBase64(f.blob).then(function (data) {
               return ghApi(gh, 'POST', '/git/blobs', { content: data, encoding: 'base64' });
             }).then(function (b) {
-              entries.push({ path: f.path, mode: '100644', type: 'blob', sha: b.sha });
+              entries.push({ path: at(f.path), mode: '100644', type: 'blob', sha: b.sha });
               uploaded.push(f.name);
             });
           });
-        }, Promise.resolve()).then(function () { return entries; });
-      }).then(function (entries) {
-        btn.textContent = 'Saving…';
-        removed.forEach(function (path) {
-          if (/^images\//.test(path) && existing[path] && !stillUsed(path)) entries.push({ path: path, mode: '100644', type: 'blob', sha: null });
-        });
-        return ogImage().then(function (og) {
+        }, Promise.resolve()).then(function () {
+          btn.textContent = 'Saving…';
+          removed.forEach(function (path) {
+            if (/^images\//.test(path) && existing[at(path)] && !stillUsed(path)) entries.push({ path: at(path), mode: '100644', type: 'blob', sha: null });
+          });
+          return ogImage();
+        }).then(function (og) {
           if (!og) return null;
           return toBase64(og).then(function (data) { return ghApi(gh, 'POST', '/git/blobs', { content: data, encoding: 'base64' }); });
         }).then(function (ogBlob) {
-          if (ogBlob) entries.push({ path: 'images/og.jpg', mode: '100644', type: 'blob', sha: ogBlob.sha });
-          return ghApi(gh, 'GET', '/contents/index.html?ref=main');
-        }).then(function (file) {
-          var html = b64ToText(file.content);
+          if (ogBlob) entries.push({ path: at('images/og.jpg'), mode: '100644', type: 'blob', sha: ogBlob.sha });
+          // The book's page comes from the site's template, with this book's title and preview picture.
+          return fetch('../template/book.html', { cache: 'no-store' }).then(function (r) {
+            if (!r.ok) throw new Error('Could not load the page template.');
+            return r.text();
+          });
+        }).then(function (html) {
           var a = html.indexOf(OG_START), z = html.indexOf(OG_END);
-          if (a !== -1 && z > a) {
-            entries.push({ path: 'index.html', mode: '100644', type: 'blob', content: html.slice(0, a) + ogBlock(site).trim() + html.slice(z + OG_END.length) });
-          }
+          entries.push({ path: at('index.html'), mode: '100644', type: 'blob',
+            content: html.slice(0, a) + ogBlock(site).trim() + html.slice(z + OG_END.length) });
           book.updated = stamp;
-          entries.push({ path: 'book.json', mode: '100644', type: 'blob', content: exportJSON() });
-          return ghApi(gh, 'POST', '/git/trees', { base_tree: baseTree, tree: entries });
+          entries.push({ path: at('book.json'), mode: '100644', type: 'blob', content: exportJSON() });
+          return readShelf(gh);
+        }).then(function (shelf) {
+          var entry = shelfEntry();
+          shelf.books = (shelf.books || []).filter(function (b) { return b.slug !== SLUG; }).concat([entry]);
+          entries.push({ path: 'books.json', mode: '100644', type: 'blob', content: JSON.stringify(shelf, null, 2) + '\n' });
+          return entries;
         });
-      }).then(function (tree) {
-        return ghApi(gh, 'POST', '/git/commits', {
-          message: 'Update the book from the Spread editor',
-          tree: tree.sha,
-          parents: [head]
-        });
-      }).then(function (c) {
-        return ghApi(gh, 'PATCH', '/git/refs/heads/main', { sha: c.sha });
       }).then(function () {
         uploaded.forEach(function (n) { if (book.images[n]) book.images[n].saved = true; });
+        imageNames().forEach(function (n) { delete book.images[n].copyOf; });
         removed = [];
-        return put('kv', 'draft', { book: book, removed: removed, at: Date.now() });
+        return put('kv', draftKey(), { book: book, removed: removed, at: Date.now(), dirty: false });
       }).then(function () {
-        location.href = '../?saved=' + encodeURIComponent(stamp);
+        waitUntilLive(stamp);
       }).catch(function (err) {
         btn.disabled = false;
         btn.textContent = 'Save';
-        var msg = err && err.message === 'Failed to fetch' ? 'Could not reach GitHub. Check your connection and try again.'
-          : err && err.status === 401 ? 'GitHub did not accept the token. Paste a new one.'
-          : err && (err.status === 403 || err.status === 404) ? 'That token cannot write to ' + gh.repo + '. Check it has Contents: Read and write for that repo.'
-          : err && err.status === 422 ? 'The repo changed while saving. Press Save again.'
-          : 'Could not save: ' + ((err && err.message) || 'unknown error');
-        if (err && err.status === 401) {
-          try { localStorage.removeItem('spread-github'); } catch (e) {}
-        }
-        toast(msg + ' Your draft is safe in this browser.', 12000);
+        toast(ghError(err, gh) + ' Your draft is safe in this browser.', 12000);
       });
     });
   }
@@ -1022,7 +1156,7 @@
     var e = book.images[name];
     var f = fileOf(e.small || e.src);
     if (e.local && blobs[f]) return Promise.resolve(blobs[f]);
-    return fetch(BASE + (e.small || e.src)).then(function (r) {
+    return fetch(remoteUrl(e, 'small')).then(function (r) {
       if (!r.ok) throw new Error('Could not load ' + name);
       return r.blob();
     });
@@ -1208,8 +1342,11 @@
     if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key === 'z' && !typing) { e.preventDefault(); undo(); }
   });
   $('reset').addEventListener('click', function () {
-    if (!confirm('Start over from the published book? This clears the draft and any images added here that you have not published.')) return;
-    Promise.all([clear('kv'), clear('files')]).then(loadLive).then(function () { currentPage = 0; render(); toast('Back to the published book.'); });
+    if (!confirm('Start over from the published version of this book? This clears this book\'s draft and any images added here that you have not saved.')) return;
+    loadLive().then(function () {
+      return Promise.all([delPrefix('files', SLUG + '/'), del('kv', draftKey())]);
+    }).then(function () { currentPage = 0; render(); measurePublished(); toast('Back to the published book.'); })
+      .catch(function () { toast('This book is not online yet, so there is no saved version to go back to. Your draft is unchanged.', 8000); });
   });
   $('publish').addEventListener('click', saveOnline);
   $('gh-settings').addEventListener('click', function () { askGh(); });
@@ -1221,8 +1358,230 @@
     });
   });
 
-  loadDraft().then(function (had) { return had ? null : loadLive(); }).then(render).then(measurePublished).catch(function (err) {
-    console.error(err);
-    toast('Could not load the book.', 8000);
-  });
+  /* ---------- My books ---------- */
+
+  function blankBook(title, eyebrow) {
+    return {
+      title: [eyebrow, title].filter(Boolean).join(', '),
+      page: { width: 600, height: 800 },
+      surface: 'studio',
+      cover: { eyebrow: eyebrow || '', title: title, subtitle: '', color: '#1b3fd0', ink: '#ffffff' },
+      endpaper: '#e8331f',
+      back: { text: 'spread.irina.love' },
+      listed: true,
+      pages: [{ layout: 'endpaper' }, { layout: 'text', heading: title }, { layout: 'endpaper' }],
+      images: {}
+    };
+  }
+
+  function slugify(t) {
+    return t.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50);
+  }
+
+  var library = { shelf: { books: [] }, drafts: {} };
+
+  function loadLibrary() {
+    var shelfReq = fetch('../books.json?v=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : { books: [] }; }).catch(function () { return { books: [] }; });
+    var draftReq = keys('kv').then(function (all) {
+      var slugs = all.map(String).filter(function (k) { return k.indexOf('draft:') === 0; }).map(function (k) { return k.slice(6); });
+      return Promise.all(slugs.map(function (sl) { return get('kv', draftKey(sl)).then(function (d) { return [sl, d]; }); }));
+    });
+    return Promise.all([shelfReq, draftReq]).then(function (res) {
+      library.shelf = res[0];
+      library.drafts = {};
+      res[1].forEach(function (pair) { if (pair[1] && pair[1].book) library.drafts[pair[0]] = pair[1]; });
+    });
+  }
+
+  function takenSlugs() {
+    return (library.shelf.books || []).map(function (b) { return b.slug; }).concat(Object.keys(library.drafts));
+  }
+
+  function coverThumb(slug, draft, pub) {
+    var b = draft && draft.book;
+    var e = b && b.cover && b.images && b.images[b.cover.image];
+    if (e && e.local) {
+      return get('files', fileKey(fileOf(e.small || e.src), slug)).then(function (blob) { return blob ? URL.createObjectURL(blob) : null; });
+    }
+    if (e && e.copyOf) return Promise.resolve(SITE + (e.copyOf.small || e.copyOf.src));
+    if (e) return Promise.resolve(SITE + slug + '/' + (e.small || e.src));
+    return Promise.resolve(pub && pub.cover ? SITE + pub.cover : null);
+  }
+
+  function renderLibrary() {
+    var grid = $('books');
+    grid.innerHTML = '';
+    var pubs = {};
+    (library.shelf.books || []).forEach(function (b) { pubs[b.slug] = b; });
+    var slugs = Object.keys(pubs).concat(Object.keys(library.drafts).filter(function (sl) { return !pubs[sl]; }));
+    slugs.sort(function (a, b) {
+      var ta = (library.drafts[a] && library.drafts[a].at) || Date.parse((pubs[a] || {}).updated || 0) || 0;
+      var tb = (library.drafts[b] && library.drafts[b].at) || Date.parse((pubs[b] || {}).updated || 0) || 0;
+      return tb - ta;
+    });
+    $('books-empty').hidden = slugs.length > 0;
+    slugs.forEach(function (sl) {
+      var pub = pubs[sl], draft = library.drafts[sl];
+      var c = (draft && draft.book.cover) || {};
+      var title = c.title || (pub && pub.title) || sl;
+      var status = !pub ? 'Not online yet' : draft && draft.dirty ? 'Online · unsaved changes' : 'Online';
+      if (pub && pub.listed === false) status += ' · not on shelf';
+      var cover = h('div', { class: 'lib-cover' }, [h('span', { text: title })]);
+      cover.style.background = c.color || (pub && pub.color) || '#1b3fd0';
+      cover.style.color = c.ink || (pub && pub.ink) || '#fff';
+      coverThumb(sl, draft, pub).then(function (u) {
+        if (u) cover.insertBefore(h('img', { src: u, alt: '' }), cover.firstChild);
+      });
+      grid.appendChild(h('li', { class: 'lib-card' }, [
+        h('a', { href: '?book=' + encodeURIComponent(sl), class: 'lib-open' }, [
+          cover,
+          h('p', { class: 'lib-title', text: title }),
+          h('p', { class: 'lib-status' + (pub ? '' : ' is-draft'), text: status })
+        ]),
+        h('div', { class: 'lib-actions' }, [
+          pub ? h('a', { class: 'link', href: '../' + sl + '/', text: 'View' }) : null,
+          h('button', { type: 'button', class: 'link', text: 'Duplicate', onclick: function () { newBook(sl, title); } }),
+          h('button', { type: 'button', class: 'link lib-delete', text: 'Delete', onclick: function () { deleteBook(sl, title, !!pub); } })
+        ])
+      ]));
+    });
+  }
+
+  // Ask for a title and web address; resolves { title, slug } or null.
+  function askNewBook(heading, title) {
+    var d = $('new-dialog');
+    $('new-heading').textContent = heading;
+    $('new-title').value = title || '';
+    $('new-slug').value = slugify(title || '');
+    $('new-error').textContent = '';
+    var slugEdited = false;
+    $('new-slug').oninput = function () { slugEdited = true; };
+    $('new-title').oninput = function () { if (!slugEdited) $('new-slug').value = slugify($('new-title').value); };
+    return new Promise(function (resolve) {
+      var settled = false;
+      function finish(value) {
+        if (settled) return;
+        settled = true;
+        if (d.open) d.close();
+        resolve(value);
+      }
+      // Resolve from the buttons themselves rather than the dialog's close event, which some
+      // browsers deliver late or not at all for a page in the background.
+      $('new-create').onclick = function (e) {
+        e.preventDefault();
+        var t = $('new-title').value.trim();
+        var sl = slugify($('new-slug').value || t);
+        var err = !t ? 'Give the book a title.'
+          : !sl ? 'The address needs at least one letter or number.'
+          : RESERVED.indexOf(sl) !== -1 ? '"' + sl + '" is used by the site itself. Choose another address.'
+          : takenSlugs().indexOf(sl) !== -1 ? 'You already have a book at /' + sl + '. Choose another address.'
+          : '';
+        if (err) { $('new-error').textContent = err; return; }
+        finish({ title: t, slug: sl });
+      };
+      $('new-cancel').onclick = function (e) { e.preventDefault(); finish(null); };
+      d.addEventListener('close', function once() { d.removeEventListener('close', once); finish(null); });
+      d.showModal();
+    });
+  }
+
+  function newBook(fromSlug, fromTitle) {
+    askNewBook(fromSlug ? 'Duplicate book' : 'New book', fromSlug ? fromTitle + ' (copy)' : '').then(function (res) {
+      if (!res) return;
+      var made = fromSlug ? duplicateFrom(fromSlug, res) : Promise.resolve(blankBook(res.title, lastArtist()));
+      return made.then(function (b) {
+        return put('kv', draftKey(res.slug), { book: b, removed: [], at: Date.now(), dirty: true });
+      }).then(function () { location.href = '?book=' + encodeURIComponent(res.slug); });
+    }).catch(function () { toast('Could not create that book.', 8000); });
+  }
+
+  function lastArtist() {
+    var names = Object.keys(library.drafts).map(function (sl) { return library.drafts[sl].book.cover.eyebrow; })
+      .concat((library.shelf.books || []).map(function (b) { return b.eyebrow; })).filter(Boolean);
+    return names[0] || '';
+  }
+
+  // A copy keeps the layout and text. Images made in this browser are copied here; published
+  // images are read from the original book until the first Save copies them into this one.
+  function duplicateFrom(src, res) {
+    var draft = library.drafts[src];
+    var source = draft ? Promise.resolve(JSON.parse(JSON.stringify(draft.book)))
+      : fetch(SITE + src + '/book.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (cfg) { return normalise(cfg, null); });
+    return source.then(function (b) {
+      var copies = [];
+      Object.keys(b.images || {}).forEach(function (n) {
+        var e = b.images[n];
+        delete e.saved;
+        if (e.local) {
+          [e.src, e.small].forEach(function (path) {
+            var f = fileOf(path);
+            copies.push(get('files', fileKey(f, src)).then(function (blob) { if (blob) return put('files', fileKey(f, res.slug), blob); }));
+          });
+        } else if (!e.copyOf) {
+          e.copyOf = { src: src + '/' + e.src, small: e.small ? src + '/' + e.small : '' };
+        }
+      });
+      b.cover.title = res.title;
+      b.title = [b.cover.eyebrow, res.title].filter(Boolean).join(', ');
+      b.listed = true;
+      delete b.updated;
+      return Promise.all(copies).then(function () { return b; });
+    });
+  }
+
+  function deleteBook(sl, title, online) {
+    var warn = 'Delete "' + title + '"?' + (online ? '\n\nIt will be removed from your site and shelf, and its link will stop working.' : '') +
+      (sl === LEGACY_SLUG ? '\n\nThe embed on your other website shows this book, so it will go blank there too.' : '') +
+      (online ? '\n\n(It stays in your GitHub history, so it can be recovered.)' : '');
+    if (!confirm(warn)) return;
+    var removeLocal = function () { return Promise.all([delPrefix('files', sl + '/'), del('kv', draftKey(sl))]); };
+    if (!online) {
+      removeLocal().then(loadLibrary).then(renderLibrary).then(function () { toast('Deleted "' + title + '".'); });
+      return;
+    }
+    withGh().then(function (gh) {
+      if (!gh) return;
+      toast('Deleting "' + title + '"…', 20000);
+      ghCommit(gh, 'Delete "' + title + '" from the Spread editor', function (existing) {
+        var entries = Object.keys(existing).filter(function (p) { return p.indexOf(sl + '/') === 0; })
+          .map(function (p) { return { path: p, mode: '100644', type: 'blob', sha: null }; });
+        return readShelf(gh).then(function (shelf) {
+          shelf.books = (shelf.books || []).filter(function (b) { return b.slug !== sl; });
+          entries.push({ path: 'books.json', mode: '100644', type: 'blob', content: JSON.stringify(shelf, null, 2) + '\n' });
+          return entries;
+        });
+      }).then(removeLocal).then(function () {
+        library.shelf.books = (library.shelf.books || []).filter(function (b) { return b.slug !== sl; });
+        return loadLibrary().then(function () {
+          library.shelf.books = (library.shelf.books || []).filter(function (b) { return b.slug !== sl; });
+        });
+      }).then(renderLibrary).then(function () {
+        toast('Deleted "' + title + '". It disappears from the site within a minute.', 8000);
+      }).catch(function (err) { toast(ghError(err, gh), 10000); });
+    });
+  }
+
+  function showLibrary() {
+    document.body.classList.add('is-library');
+    document.title = 'My books · Spread';
+    $('new-book').addEventListener('click', function () { newBook(); });
+    return loadLibrary().then(renderLibrary);
+  }
+
+  function openBook() {
+    $('book-name').textContent = SLUG;
+    return loadDraft().then(function (had) { return had ? null : loadLive(); }).then(function () {
+      $('book-name').textContent = (book.cover && book.cover.title) || SLUG;
+      document.title = $('book-name').textContent + ' · Spread editor';
+      render();
+      measurePublished();
+    }).catch(function (err) {
+      console.error(err);
+      toast('Could not open this book. Go back to My books and open it from there.', 10000);
+    });
+  }
+
+  migrateLegacy().catch(function () {}).then(function () { return SLUG ? openBook() : showLibrary(); });
 })();

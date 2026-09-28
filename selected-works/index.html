@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- spread:og -->
+  <title>Irina Csapo, Selected Works · Spread</title>
+  <meta name="description" content="Collage, mixed media &amp; digital interactive art. A book you can page through.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://spread.irina.love/selected-works/">
+  <meta property="og:title" content="Irina Csapo, Selected Works">
+  <meta property="og:description" content="Collage, mixed media &amp; digital interactive art. A book you can page through.">
+  <meta property="og:image" content="https://spread.irina.love/selected-works/images/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <!-- /spread:og -->
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600&family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../spread.css">
+  <link rel="stylesheet" href="../page.css">
+</head>
+<body class="book-page">
+  <div class="wrap">
+    <header>
+      <h1 class="logo"><a href="../">spread<span>.irina.love</span></a></h1>
+      <div class="tagline">
+        <p class="tag">Your artwork, as a book you can page through.</p>
+        <span class="demo">Demo · opening to artists soon</span>
+      </div>
+    </header>
+
+    <p class="crumb"><a href="../">← All books</a></p>
+    <p class="saved" id="saved" role="status" aria-live="polite" hidden></p>
+
+    <div class="spread book" id="book" data-book="book.json"></div>
+
+    <section class="share" id="share">
+      <div>
+        <h2>Share this book</h2>
+        <p>Send the link to anyone. It opens the book on any phone or computer.</p>
+        <div class="row">
+          <input class="url" id="share-url" type="text" readonly aria-label="Link to the book">
+          <button class="btn btn--dark" id="copy-link" type="button">Copy link</button>
+        </div>
+        <div class="row">
+          <a class="btn btn--wa" id="whatsapp" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.6-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.1 5.1 0 0 0 1.1 2.7 11.7 11.7 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3z"/></svg>
+            WhatsApp
+          </a>
+          <button class="btn" id="native-share" type="button" hidden>Share…</button>
+          <a class="btn edit-link" id="edit-link" hidden>Edit book</a>
+        </div>
+      </div>
+      <div>
+        <h2>Put it on your website</h2>
+        <p>Paste this where the book should sit. It fills the width of that section.</p>
+        <pre><code id="embed-code"></code></pre>
+        <button class="btn" id="copy-embed" type="button">Copy embed code</button>
+      </div>
+    </section>
+
+    <footer>
+      <p><strong>Your art stays yours.</strong> We store your images only to show your book. We never use them for anything else, and never to train AI. That's a promise. If an artist chooses Arrange with AI, small copies go to Anthropic's Claude only to suggest a layout and text; Anthropic does not train on them and deletes them within 30 days.</p>
+      <p><a href="../">All books</a></p>
+    </footer>
+  </div>
+
+  <script src="../vendor/page-flip.browser.js"></script>
+  <script src="../spread.js"></script>
+  <script src="../page.js"></script>
+</body>
+</html>

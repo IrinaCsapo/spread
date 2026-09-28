@@ -1,0 +1,15 @@
+{
+  "books": [
+    {
+      "slug": "selected-works",
+      "title": "Selected Works",
+      "eyebrow": "Irina Csapo",
+      "color": "#1b3fd0",
+      "ink": "#ffffff",
+      "cover": "selected-works/images/red-lips-bust-1000.webp",
+      "pages": 24,
+      "listed": true,
+      "updated": "2026-09-28T01:43:01.686Z"
+    }
+  ]
+}

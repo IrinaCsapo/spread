@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Spread image converter.
 
-Drop originals (jpg, png, webp, heic if Pillow supports it) into spread/source-images/
-and run:
+Drop originals (jpg, png, webp, heic if Pillow supports it) into source-images/
+and run, naming the book folder the images are for:
 
-    python3 spread/tools/optimize.py
+    python3 tools/optimize.py selected-works
 
-Each image becomes two light WebP files in spread/images/ (the editor does the
+Each image becomes two light WebP files in <book>/images/ (the editor does the
 same in the browser; this script is for batches from the command line):
     name.webp        2400px on the long edge  (big screens, full-bleed spreads)
     name-1000.webp   1000px on the long edge  (phones, thumbnails)
@@ -24,7 +24,7 @@ from PIL import Image, ImageOps
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "source-images"
-OUT = ROOT / "images"
+OUT = None  # set from the book folder given on the command line
 SIZES = {"": 2400, "-1000": 1000}
 QUALITY = 90  # matches the editor
 EXTS = {".jpg", ".jpeg", ".png", ".webp", ".heic", ".tif", ".tiff"}
@@ -42,7 +42,7 @@ def convert(path: Path) -> dict:
             dest = OUT / f"{path.stem}{suffix}.webp"
             copy.save(dest, "WEBP", quality=QUALITY, method=6)
             entry["files"][edge] = {
-                "src": f"images/{dest.name}",
+                "src": f"images/{dest.name}",  # relative to the book folder
                 "width": copy.width,
                 "height": copy.height,
                 "kb": round(dest.stat().st_size / 1024),
@@ -51,6 +51,11 @@ def convert(path: Path) -> dict:
 
 
 def main() -> int:
+    global OUT
+    if len(sys.argv) != 2 or not (ROOT / sys.argv[1] / "book.json").exists():
+        print("Usage: python3 tools/optimize.py <book folder>, e.g. selected-works")
+        return 1
+    OUT = ROOT / sys.argv[1] / "images"
     OUT.mkdir(exist_ok=True)
     sources = sorted(p for p in SRC.iterdir() if p.suffix.lower() in EXTS)
     if not sources:

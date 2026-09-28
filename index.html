@@ -3,69 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- spread:og -->
-  <title>Irina Csapo, Selected Works · Spread</title>
-  <meta name="description" content="Collage, mixed media &amp; digital interactive art. A book you can page through.">
+  <title>Irina Csapo · Spread</title>
+  <meta name="description" content="Books of collage, mixed media and digital work by Irina Csapo.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://spread.irina.love/">
-  <meta property="og:title" content="Irina Csapo, Selected Works">
-  <meta property="og:description" content="Collage, mixed media &amp; digital interactive art. A book you can page through.">
-  <meta property="og:image" content="https://spread.irina.love/images/og.jpg">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
+  <meta property="og:title" content="Irina Csapo · Spread">
+  <meta property="og:description" content="Books of collage, mixed media and digital work by Irina Csapo.">
+  <meta property="og:image" content="https://spread.irina.love/selected-works/images/og.jpg">
   <meta name="twitter:card" content="summary_large_image">
-  <!-- /spread:og -->
   <meta name="robots" content="noindex">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600&family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital@0;1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="spread.css">
-  <style>
-    :root { --ink: #1d1c1a; --muted: #6f6a62; --bg: #f4f2ee; --accent: #e8331f; --blue: #1b3fd0; }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 "Albert Sans", system-ui, sans-serif; }
-    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
-    header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 28px 0 20px; flex-wrap: wrap; }
-    .logo { margin: 0; font: 400 32px/1 "Libre Caslon Text", Georgia, serif; letter-spacing: -.01em; }
-    .logo span { color: var(--accent); font-style: italic; }
-    .tagline { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .tag { margin: 0; color: var(--muted); }
-    .demo { padding: 4px 10px; border: 1px solid rgba(232,51,31,.35); border-radius: 999px; color: #b8260f; font-size: 12px; font-weight: 500; letter-spacing: .04em; white-space: nowrap; }
-    .book { border-radius: 14px; }
-    .tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 18px 0 8px; }
-    .tools-label { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
-    .chip { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px 7px 8px; border: 1px solid rgba(29,28,26,.14); border-radius: 999px; background: #fff; color: var(--ink); font: inherit; font-size: 14px; cursor: pointer; }
-    .chip i { width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
-    .chip[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
-    .chip:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
-    .saved[hidden] { display: none; }
-    .saved { display: flex; align-items: center; gap: 12px; margin: 0 0 16px; padding: 12px 16px; border-radius: 12px; background: #fff; border: 1px solid rgba(29,28,26,.12); font-size: 15px; }
-    .saved::before { content: ""; flex: none; width: 10px; height: 10px; border-radius: 50%; background: #d9a400; box-shadow: 0 0 0 4px rgba(217,164,0,.18); animation: pulse 1.4s ease-in-out infinite; }
-    .saved.is-live::before { background: #1f9d55; box-shadow: 0 0 0 4px rgba(31,157,85,.18); animation: none; }
-    @keyframes pulse { 50% { opacity: .35; } }
-    @media (prefers-reduced-motion: reduce) { .saved::before { animation: none; } }
-    section.share { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; padding: 36px 0 56px; }
-    @media (max-width: 800px) { section.share { grid-template-columns: 1fr; } }
-    .share h2 + p { margin: 0 0 14px; color: var(--muted); }
-    .row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .row + .row { margin-top: 10px; }
-    .url { flex: 1 1 220px; min-width: 0; padding: 10px 12px; border: 1px solid rgba(29,28,26,.14); border-radius: 10px; background: #fff; font: inherit; color: var(--ink); }
-    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border: 1px solid rgba(29,28,26,.14); border-radius: 999px; background: #fff; color: var(--ink); font: inherit; font-weight: 500; text-decoration: none; cursor: pointer; }
-    .btn:hover { border-color: rgba(29,28,26,.4); }
-    .btn:focus-visible, .url:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
-    .btn--dark { background: var(--ink); border-color: var(--ink); color: #fff; }
-    .btn--wa { background: #1f9d55; border-color: #1f9d55; color: #fff; }
-    .btn svg { width: 18px; height: 18px; }
-    .share pre { margin: 0 0 10px; }
-    h2 { font: 400 28px/1.1 "Libre Caslon Display", "Libre Caslon Text", Georgia, serif; margin: 0 0 10px; }
-    pre { margin: 12px 0 0; padding: 16px; overflow-x: auto; background: #fff; border: 1px solid rgba(29,28,26,.1); border-radius: 10px; font: 13px/1.6 ui-monospace, "SF Mono", Menlo, monospace; }
-    p.note { color: var(--muted); margin: 12px 0 0; }
-    footer { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding: 24px 0 40px; border-top: 1px solid rgba(29,28,26,.1); color: var(--muted); font-size: 13px; }
-    footer p { margin: 0; max-width: 560px; }
-    footer strong { color: var(--ink); font-weight: 500; }
-    footer a { color: var(--ink); }
-  </style>
+  <link rel="stylesheet" href="page.css">
 </head>
 <body>
   <div class="wrap">
@@ -77,47 +28,11 @@
       </div>
     </header>
 
-    <p class="saved" id="saved" role="status" aria-live="polite" hidden></p>
-
-    <div class="spread book" id="book" data-book="book.json"></div>
-
-    <div class="tools" role="group" aria-label="Surface">
-      <span class="tools-label">Surface</span>
-      <button class="chip" data-surface="studio" aria-pressed="true"><i style="background:#d3d0c9"></i>Studio</button>
-      <button class="chip" data-surface="linen" aria-pressed="false"><i style="background:#e6e0d4"></i>Linen</button>
-      <button class="chip" data-surface="oak" aria-pressed="false"><i style="background:#a8794c"></i>Oak</button>
-      <button class="chip" data-surface="concrete" aria-pressed="false"><i style="background:#aeada9"></i>Concrete</button>
-      <button class="chip" data-surface="blush" aria-pressed="false"><i style="background:#ead8d2"></i>Blush</button>
-      <button class="chip" data-surface="night" aria-pressed="false"><i style="background:#1d1e23"></i>Night</button>
-    </div>
-
-    <section class="share" id="share">
-      <div>
-        <h2>Share your book</h2>
-        <p>Send the link to anyone. It opens the book on any phone or computer.</p>
-        <div class="row">
-          <input class="url" id="share-url" type="text" readonly aria-label="Link to the book">
-          <button class="btn btn--dark" id="copy-link" type="button">Copy link</button>
-        </div>
-        <div class="row">
-          <a class="btn btn--wa" id="whatsapp" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.6-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.1 5.1 0 0 0 1.1 2.7 11.7 11.7 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3z"/></svg>
-            WhatsApp
-          </a>
-          <button class="btn" id="native-share" type="button" hidden>Share…</button>
-          <a class="btn" href="editor/">Edit book</a>
-        </div>
-      </div>
-      <div>
-        <h2>Put it on your website</h2>
-        <p>Paste this where the book should sit. It fills the width of that section.</p>
-<pre><code id="embed-code">&lt;link rel="stylesheet" href="https://spread.irina.love/spread.css"&gt;
-&lt;div class="spread" data-book="https://spread.irina.love/book.json"&gt;&lt;/div&gt;
-&lt;script src="https://spread.irina.love/vendor/page-flip.browser.js"&gt;&lt;/script&gt;
-&lt;script src="https://spread.irina.love/spread.js"&gt;&lt;/script&gt;</code></pre>
-        <button class="btn" id="copy-embed" type="button">Copy embed code</button>
-      </div>
-    </section>
+    <main>
+      <h2>Books</h2>
+      <p class="shelf-intro">Open a book and turn its pages: drag a corner, swipe, or use the arrow keys.</p>
+      <ul class="shelf" id="shelf" aria-label="Books"></ul>
+    </main>
 
     <footer>
       <p><strong>Your art stays yours.</strong> We store your images only to show your book. We never use them for anything else, and never to train AI. That's a promise. If an artist chooses Arrange with AI, small copies go to Anthropic's Claude only to suggest a layout and text; Anthropic does not train on them and deletes them within 30 days.</p>
@@ -125,85 +40,45 @@
     </footer>
   </div>
 
-  <script src="vendor/page-flip.browser.js"></script>
-  <script src="spread.js"></script>
   <script>
-    var root = document.getElementById('book');
-    var chips = document.querySelectorAll('.chip');
-    function pressSurface(name) {
-      chips.forEach(function (c) { c.setAttribute('aria-pressed', String(c.dataset.surface === name)); });
-    }
-    // Show the book's own surface as selected once it has loaded.
-    (function waitForBook(n) {
-      if (root.spread) pressSurface(root.dataset.surface);
-      else if (n < 50) setTimeout(function () { waitForBook(n + 1); }, 100);
-    })(0);
-
-    chips.forEach(function (chip) {
-      chip.addEventListener('click', function () {
-        var book = document.getElementById('book').spread;
-        if (book) book.setSurface(chip.dataset.surface);
-        pressSurface(chip.dataset.surface);
-      });
-    });
-
-    /* Share */
-    var link = location.origin + location.pathname.replace(/index\.html$/, '');
-    var bookTitle = document.querySelector('meta[property="og:title"]').content;
-    document.getElementById('share-url').value = link;
-    document.getElementById('whatsapp').href = 'https://wa.me/?text=' + encodeURIComponent(bookTitle + ' ' + link);
-
-    function copy(text, button, done) {
-      var label = button.textContent;
-      function ok() { button.textContent = done; setTimeout(function () { button.textContent = label; }, 1800); }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(ok, function () { fallback(); });
-      } else fallback();
-      function fallback() {
-        var t = document.createElement('textarea');
-        t.value = text; document.body.appendChild(t); t.select();
-        try { document.execCommand('copy'); ok(); } catch (e) {}
-        t.remove();
+    (function () {
+      var shelf = document.getElementById('shelf');
+      function el(tag, cls, text) {
+        var n = document.createElement(tag);
+        if (cls) n.className = cls;
+        if (text) n.textContent = text;
+        return n;
       }
-    }
-    document.getElementById('copy-link').addEventListener('click', function () { copy(link, this, 'Copied'); });
-    document.getElementById('copy-embed').addEventListener('click', function () {
-      copy(document.getElementById('embed-code').textContent, this, 'Copied');
-    });
-    document.getElementById('share-url').addEventListener('focus', function () { this.select(); });
-    if (navigator.share) {
-      var ns = document.getElementById('native-share');
-      ns.hidden = false;
-      ns.addEventListener('click', function () {
-        navigator.share({ title: bookTitle, url: link }).catch(function () {});
-      });
-    }
-
-    /* After Save: wait for GitHub Pages to publish, then show the new book */
-    var savedAt = new URLSearchParams(location.search).get('saved');
-    if (savedAt) {
-      var banner = document.getElementById('saved');
-      banner.hidden = false;
-      banner.textContent = 'Saved. Putting it online, this usually takes about a minute…';
-      history.replaceState(null, '', location.pathname);
-      var started = Date.now();
-      (function poll() {
-        fetch('book.json?v=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (cfg) {
-          if (cfg.updated && cfg.updated >= savedAt) {
-            banner.textContent = 'Your book is live. Share the link below.';
-            banner.classList.add('is-live');
-            if (root.spread) root.spread.destroy();
-            root.spread = Spread.mount(root, cfg, '');
-            pressSurface(root.dataset.surface);
-            document.getElementById('share').scrollIntoView({ behavior: 'smooth', block: 'start' });
-          } else if (Date.now() - started < 5 * 60 * 1000) {
-            setTimeout(poll, 5000);
-          } else {
-            banner.textContent = 'Saved, but it is taking longer than usual to go live. Refresh in a few minutes.';
-          }
-        }).catch(function () { setTimeout(poll, 5000); });
-      })();
-    }
+      fetch('books.json?v=' + Date.now(), { cache: 'no-store' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var books = (data.books || []).filter(function (b) { return b.listed !== false; })
+            .sort(function (a, b) { return (b.updated || '').localeCompare(a.updated || ''); });
+          if (!books.length) { shelf.replaceWith(el('p', 'shelf-empty', 'No books on the shelf yet.')); return; }
+          books.forEach(function (b) {
+            var a = el('a');
+            a.href = b.slug + '/';
+            var cover = el('div', 'shelf-cover');
+            cover.style.background = b.color || '#1b3fd0';
+            cover.style.color = b.ink || '#fff';
+            if (b.cover) {
+              var img = el('img');
+              img.src = b.cover;
+              img.alt = '';
+              img.loading = 'lazy';
+              cover.appendChild(img);
+            }
+            cover.appendChild(el('span', '', b.title || ''));
+            a.appendChild(cover);
+            a.appendChild(el('p', 'shelf-title', b.title || b.slug));
+            a.appendChild(el('p', 'shelf-meta', [b.eyebrow, b.pages ? b.pages + ' pages' : ''].filter(Boolean).join(' · ')));
+            var li = el('li');
+            li.appendChild(a);
+            shelf.appendChild(li);
+          });
+        })
+        .catch(function () { shelf.replaceWith(el('p', 'shelf-empty', 'Could not load the books.')); });
+    })();
   </script>
 </body>
 </html>

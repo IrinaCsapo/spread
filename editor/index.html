@@ -16,6 +16,8 @@
   <header class="bar">
     <a class="logo" href="../">spread<span>.irina.love</span></a>
     <span class="bar-title">Editor</span>
+    <a class="bar-books" href="./">← My books</a>
+    <span class="bar-book" id="book-name"></span>
     <div class="bar-actions">
       <button class="btn btn--quiet" id="undo" type="button" disabled>Undo</button>
       <button class="btn" id="mode" type="button" aria-pressed="false">Edit book</button>
@@ -24,6 +26,16 @@
       <button class="btn btn--primary" id="publish" type="button">Save</button>
     </div>
   </header>
+
+  <section class="library" id="library" aria-labelledby="library-heading">
+    <div class="library-head">
+      <h1 id="library-heading">My books</h1>
+      <button class="btn btn--primary" id="new-book" type="button">+ New book</button>
+    </div>
+    <p class="library-intro">Each book has its own link to share and its own embed code. Books marked for the shelf also appear on spread.irina.love.</p>
+    <p class="library-empty" id="books-empty" hidden>No books yet. Start one with New book.</p>
+    <ul class="lib-grid" id="books"></ul>
+  </section>
 
   <main class="layout">
     <section class="panel" aria-label="Book contents">
@@ -87,6 +99,30 @@
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <div class="publishing" id="publishing" role="status" aria-live="polite" hidden>
+    <div class="publishing-card">
+      <span class="publishing-dot" aria-hidden="true"></span>
+      <h2>Saved. Putting it online…</h2>
+      <p id="publishing-text">This usually takes about a minute. Your book opens here as soon as it is live.</p>
+      <a class="link" id="publishing-open">Open the book page now</a>
+    </div>
+  </div>
+
+  <dialog class="dialog" id="new-dialog">
+    <form method="dialog">
+      <h2 id="new-heading">New book</h2>
+      <label class="field"><span>Title</span><input class="input" id="new-title" type="text" autocomplete="off" required></label>
+      <label class="field"><span>Web address</span>
+        <span class="slug-row"><span class="slug-prefix">spread.irina.love/</span><input class="input" id="new-slug" type="text" autocomplete="off" spellcheck="false"></span>
+      </label>
+      <p class="dialog-error" id="new-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button class="btn btn--quiet" id="new-cancel" type="button">Cancel</button>
+        <button class="btn btn--primary" id="new-create" type="submit">Create</button>
+      </div>
+    </form>
+  </dialog>
 
   <dialog class="dialog" id="gh-dialog">
     <form method="dialog">

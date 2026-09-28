@@ -274,17 +274,27 @@
     };
   }
 
+  // A book.json of the form { "moved": "other/book.json" } points to where the book now lives,
+  // so embeds made before a book moved keep working. Followed at most a few times.
+  function fetchBook(url, hops) {
+    return fetch(url).then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg && cfg.moved && hops < 3) return fetchBook(new URL(cfg.moved, new URL(url, location.href)).href, hops + 1);
+      return { cfg: cfg, url: url };
+    });
+  }
+
   function load(root) {
     var url = root.getAttribute('data-book');
     if (!url) return Promise.resolve(null);
-    var base = url.indexOf('/') === -1 ? '' : url.slice(0, url.lastIndexOf('/') + 1);
-    return fetch(url)
-      .then(function (r) { return r.json(); })
-      .then(function (cfg) { return (root.spread = mount(root, cfg, base)); })
+    return fetchBook(url, 0)
+      .then(function (res) {
+        var base = res.url.indexOf('/') === -1 ? '' : res.url.slice(0, res.url.lastIndexOf('/') + 1);
+        return (root.spread = mount(root, res.cfg, base));
+      })
       .catch(function (err) { console.error('[spread] could not load ' + url, err); });
   }
 
-  window.Spread = { mount: mount, load: load, surfaces: SURFACES };
+  window.Spread = { mount: mount, load: load, fetchBook: function (url) { return fetchBook(url, 0); }, surfaces: SURFACES };
 
   function auto() {
     document.querySelectorAll('.spread[data-book]').forEach(load);
