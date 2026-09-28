@@ -1,5 +1,5 @@
 /*!
- * Spread: artwork as a book you can hold.
+ * Spread: artwork as a book you can page through.
  * Embed:
  *   <link rel="stylesheet" href="https://spread.irina.love/spread.css">
  *   <div class="spread" data-book="https://spread.irina.love/book.json"></div>

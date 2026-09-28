@@ -1,6 +1,6 @@
 # Spread
 
-Artwork as a book you can hold. A page-curl book you can drop into any section of a website.
+Artwork as a book you can page through. A page-curl book you can drop into any section of a website.
 
 ## Editor
 
