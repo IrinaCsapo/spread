@@ -22,8 +22,8 @@ button { font: inherit; color: inherit; }
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line);
 }
-.logo { font: 400 24px/1 "Libre Caslon Display", "Libre Caslon Text", Georgia, serif; color: var(--ink); text-decoration: none; }
-.logo span { color: var(--accent); font-family: "Libre Caslon Text", Georgia, serif; font-style: italic; font-size: .9em; }
+.logo { font: 400 22px/1 "Libre Caslon Text", Georgia, serif; color: var(--ink); text-decoration: none; }
+.logo span { color: var(--accent); font-style: italic; }
 .bar-title { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .bar-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
 
