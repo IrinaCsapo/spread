@@ -97,6 +97,7 @@
 }
 
 .spread-shift {
+  margin: 0 auto;
   transition: transform .9s cubic-bezier(.3, .7, .2, 1);
   filter: drop-shadow(0 22px 26px rgba(20, 16, 10, .22)) drop-shadow(0 3px 4px rgba(20, 16, 10, .18));
 }

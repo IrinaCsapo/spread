@@ -178,6 +178,8 @@
     });
 
     var size = cfg.page || { width: 600, height: 800 };
+    // The book never grows past two full pages; centre it when its section is wider than that.
+    shift.style.maxWidth = size.width * 2 + 'px';
     var start = Math.max(0, Math.min(opts.startPage || 0, pages.length - 1));
     var reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     var flip = new St.PageFlip(bookEl, {
